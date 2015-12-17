@@ -12,6 +12,9 @@ use Drupal\Core\Field\BaseFieldDefinition;
 use Drupal\Core\Entity\ContentEntityBase;
 use Drupal\Core\Entity\EntityChangedTrait;
 use Drupal\Core\Entity\EntityTypeInterface;
+use Drupal\Core\TypedData\Plugin\DataType\Timestamp;
+use Drupal\quiz\QuestionInterface;
+use Drupal\quiz\QuizInterface;
 use Drupal\quiz\UserQuizStatusInterface;
 use Drupal\user\UserInterface;
 
@@ -92,6 +95,143 @@ class UserQuizStatus extends ContentEntityBase implements UserQuizStatusInterfac
   public function setOwner(UserInterface $account) {
     $this->set('user_id', $account->id());
     return $this;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function setQuiz(QuizInterface $quiz) {
+    $this->set('quiz', $quiz->id());
+    return $this;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getQuiz() {
+    return $this->get('quiz');
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function setScore($score) {
+    $this->set('score', $score);
+    return $this;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getScore() {
+    return $this->get('score');
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function setMaxScore($maxScore) {
+    $this->set('max_score', $maxScore);
+    return $this;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getMaxScore() {
+    return $this->get('max_score');
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function setCorrectAnswerCount($correctAnswerCount) {
+    $this->set('correct_answers', $correctAnswerCount);
+    return $this;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getCorrectAnswerCount() {
+    return $this->get('correct_answers');
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function setTotalAnswerCount($totalAnswerCount) {
+    $this->set('total_answers', $totalAnswerCount);
+    return $this;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getTotalAnswerCount() {
+    return $this->get('total_answers');
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function setPercent($percent) {
+    $this->set('percent', $percent);
+    return $this;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getPercent() {
+    return $this->get('percent');
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getStarted() {
+    return $this->get('started');
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function setFinished($timestamp) {
+    $this->set('finished', $timestamp);
+    return $this;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getFinished() {
+    return $this->get('finished');
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function setLastQuestion(QuestionInterface $question) {
+    $this->set('last_question', $question);
+    return $this;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getLastQuestion() {
+    /*
+    kint($this->get('last_question')->entity);
+    if ($this->get('last_question')->target_id == NULL)
+      return NULL;
+    */
+    kint($this->get('last_question')->target_id);
+    return $this->get('last_question')->target_id;
+  }
+
+  public function isFinished() {
+    return $this->get('finished')->value;
   }
 
   /**

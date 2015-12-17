@@ -376,17 +376,17 @@ entity.quiz.take_quiz:
   options:
     _admin_route: TRUE
 
-entity.quiz.take_quiz_question:
-  path: '/admin/quiz/{quiz}/take/{question}'
-  defaults:
-    _controller: '\Drupal\quiz\Controller\QuizController::takeQuizQuestion'
-    _title: 'Quiz'
-  requirements:
-    _entity_access: 'quiz.view'
-    _entity_access: 'question.view'
-    _permission: 'take quiz'
-  options:
-    _admin_route: TRUE
+#entity.quiz.take_quiz_question:
+#  path: '/admin/quiz/{quiz}/take/{question}'
+#  defaults:
+#    _controller: '\Drupal\quiz\Controller\QuizController::takeQuizQuestion'
+#    _title: 'Quiz'
+#  requirements:
+#    _entity_access: 'quiz.view'
+#    _entity_access: 'question.view'
+#    _permission: 'take quiz'
+#  options:
+#    _admin_route: TRUE
 
 entity.quiz.delete_answers:
   path: '/admin/quiz/{quiz}/reset'

@@ -12,6 +12,7 @@ use Drupal\Core\Field\BaseFieldDefinition;
 use Drupal\Core\Entity\ContentEntityBase;
 use Drupal\Core\Entity\EntityChangedTrait;
 use Drupal\Core\Entity\EntityTypeInterface;
+use Drupal\Core\Session\AccountInterface;
 use Drupal\quiz\QuizInterface;
 use Drupal\user\UserInterface;
 //"view_builder" = "Drupal\Core\Entity\EntityViewBuilder",
@@ -109,6 +110,39 @@ class Quiz extends ContentEntityBase implements QuizInterface {
    */
   public function getType() {
     return $this->bundle();
+  }
+
+  public function getQuestions() {
+    $questionStorage = static::entityTypeManager()->getStorage('question');
+    $query = $questionStorage->getQuery();
+    $aids = $query
+      ->Condition('quiz', $this->id())
+      ->execute();
+    return $questionStorage->loadMultiple($aids);
+  }
+
+  public function getStatuses(AccountInterface $user) {
+    $statusStorage = static::entityTypeManager()->getStorage('user_quiz_status');
+    $query = $statusStorage->getQuery();
+    $qidList = $query
+      ->condition('quiz', $this->id())
+      ->condition('user', $user->id())
+      ->execute();
+    return $statusStorage->loadMultiple($qidList);
+  }
+
+  public function getStatus(AccountInterface $user) {
+    $statusStorage = static::entityTypeManager()->getStorage('user_quiz_status');
+    $query = $statusStorage->getQuery();
+    $qidList = $query
+      ->condition('quiz', $this->id())
+      ->condition('user_id', $user->id())
+      ->condition('finished', 0)
+      ->execute();
+    //kint($qidList);
+    if (!empty($qidList))
+      return $statusStorage->load(key($qidList));
+    return NULL;
   }
 
   /**

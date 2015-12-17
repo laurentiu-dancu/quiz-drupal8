@@ -28,8 +28,7 @@ class AnswerForm extends ContentEntityForm {
     /* @var $question \Drupal\quiz\Entity\Question */
     $count = $question->getUserAnswersCount($this->currentUser());
     if($count) {
-      return $this->redirect('entity.quiz.take_quiz_question', [
-        'question' => $question->id(),
+      return $this->redirect('entity.quiz.take_quiz', [
         'quiz' => $question->getQuiz()->id(),
       ]);
     }
@@ -69,10 +68,13 @@ class AnswerForm extends ContentEntityForm {
     $question = $entity->getQuestion();
     /* @var $question \Drupal\quiz\Entity\Question */
     $quiz = $question->getQuiz();
+    $status = $quiz->getStatus($this->currentUser());
+    /* @var $status \Drupal\quiz\Entity\UserQuizStatus */
+    $status->setLastQuestion($question);
+    $status->save();
     /* @var $quiz \Drupal\quiz\Entity\Quiz */
-    $form_state->setRedirect('entity.quiz.take_quiz_question', [
+    $form_state->setRedirect('entity.quiz.take_quiz', [
       'quiz' => $quiz->id(),
-      'question' => $question->id()
     ]);
     //}
   }

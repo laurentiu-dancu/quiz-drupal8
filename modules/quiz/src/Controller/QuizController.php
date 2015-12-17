@@ -7,10 +7,12 @@
 
 namespace Drupal\quiz\Controller;
 
+use DateTime;
 use Drupal\Core\Controller\ControllerBase;
 use Drupal\Core\Entity\EntityType;
 use Drupal\Core\Routing\UrlGeneratorTrait;
 use Drupal\Core\Session\AccountInterface;
+use Drupal\Core\TypedData\Plugin\DataType\Timestamp;
 use Drupal\Core\Url;
 use Drupal\quiz\AnswerListBuilder;
 use Drupal\quiz\Entity\UserQuizStatus;
@@ -85,26 +87,77 @@ class QuizController extends ControllerBase {
    *  else it returns a redirect back to quiz.
    */
   public function takeQuiz(QuizInterface $quiz) {
+    // Only attempt quiz if it has questions.
 
-    // Getting IDs of questions for this quiz
-    $storage = static::entityTypeManager()->getStorage('question');
-    $query = $storage->getQuery();
-    $qids = $query
-      ->Condition('quiz', $quiz->id())
-      ->execute();
-    if (count($qids)) {
-      reset($qids);
-      $question = $storage->load(current($qids));
-      /* @var $question \Drupal\quiz\Entity\Question */
-      if($question->getUserAnswersCount($this->currentUser()))
-        return $this->redirect('entity.quiz.take_quiz_question', [
-          'question' => $question->id(),
-          'quiz' => $quiz->id()
+    $questions = $quiz->getQuestions();
+    if (count($questions)) {
+
+      $status = $quiz->getStatus($this->currentUser());
+      //while(1);
+      // If no open quiz session is found, create one.
+      if($status == NULL) {
+        $status = UserQuizStatus::create(array());
+        $status->setQuiz($quiz);
+        $status->setFinished(0);
+        $status->save();
+      }
+
+      $next = 0;
+      $nextQuestion = NULL;
+      foreach ($questions as $question) {
+        /* @var $question \Drupal\quiz\Entity\Question */
+        if ($status->getLastQuestion() == NULL || $next) {
+          kint($status->getLastQuestion());
+          $nextQuestion = $question;
+          break;
+        }
+        if ($status->getLastQuestion() == $question->id()) {
+          $next = 1;
+        }
+
+      }
+
+      // There is a question to be answered case.
+      if ($nextQuestion != NULL) {
+        return $this->redirect('entity.answer.add_answer', [
+          'question' => $nextQuestion->id(),
         ]);
-      return $this->redirect('entity.answer.add_answer', [
-        'question' => $question->id(),
-      ]);
+      }
+      // Quiz completed case.
+      else {
+        kint($status->isFinished());
+        if($status->isFinished() == 0) {
+          $status->setScore($this->evaluate($quiz, $this->currentUser()));
+          $status->setMaxScore($this->getMaxScore($quiz));
+          $status->setCorrectAnswerCount(0);
+          $status->setTotalAnswerCount(count($this->getQuestionIds($quiz)));
+          $status->setPercent($quiz->get('percent')->value);
+          $status->setFinished(time());
+          $status->save();
+        }
+        return $this->redirect('entity.quiz.canonical_user', [
+          'quiz' => $quiz->id(),
+        ]);
+      }
     }
+
+    /*
+    // Only attempt quiz if it has questions.
+    if (count($questions)) {
+      foreach ($questions as $question) {
+        /* @var $question \Drupal\quiz\Entity\Question
+        if ($question->getUserAnswersCount($this->currentUser())) {
+          return $this->redirect('entity.quiz.take_quiz_question', [
+            'question' => $question->id(),
+            'quiz' => $quiz->id()
+          ]);
+        }
+        return $this->redirect('entity.answer.add_answer', [
+          'question' => $question->id(),
+        ]);
+      }
+    }
+*/
     drupal_set_message($this->t('This quiz has no questions.'), 'warning');
     return $this->redirect('entity.quiz.canonical_user', [
       'quiz' => $quiz->id(),
@@ -119,6 +172,7 @@ class QuizController extends ControllerBase {
    * @return \Symfony\Component\HttpFoundation\RedirectResponse
    *    Returns a redirect to the next answer or back to quiz if no next answer.
    */
+  /*
   public function takeQuizQuestion(QuizInterface $quiz, QuestionInterface $question) {
 
     // Getting IDs of questions for this quiz
@@ -129,7 +183,7 @@ class QuizController extends ControllerBase {
     foreach ($qids as $qid) {
       if ($next == 1) {
         $quest = $storage->load($qid);
-        /* @var $quest \Drupal\quiz\Entity\Question */
+        /* @var $quest \Drupal\quiz\Entity\Question
         if($this->isAnswered($quest, $this->currentUser())) {
           return $this->redirect('entity.quiz.take_quiz_question', [
             'question' => $quest->id(),
@@ -151,6 +205,7 @@ class QuizController extends ControllerBase {
     ]);
 
   }
+*/
 
   /**
    * Gets all the answers for a quiz for an user.
@@ -246,8 +301,8 @@ class QuizController extends ControllerBase {
       $list = $this->getResultsTable($quiz,$this->currentUser());
       $started = "yes";
       $latestQuestion = $this->getLatestAnsweredQuestionId($quiz, $this->currentUser());
-      $takeQuizUrl = Url::fromRoute('entity.quiz.take_quiz_question',
-        ['quiz' => $quiz->id(), 'question' => $latestQuestion]);
+      $takeQuizUrl = Url::fromRoute('entity.quiz.take_quiz',
+        ['quiz' => $quiz->id()]);
       $link = $linkGenerator->generate('Continue Quiz',$takeQuizUrl);
     }
     else {
@@ -506,9 +561,12 @@ class QuizController extends ControllerBase {
   }
 
   public function newUserQuizStatus(QuizInterface $quiz) {
-    $quizStatus = new UserQuizStatus(array(), 'user_quiz_status');
-    $quizStatus->save();
+
+    $quizStatus = UserQuizStatus::create(array());
+    $quizStatus->setQuiz($quiz);
     kint($quizStatus);
+    $quizStatus->save();
+    return array('#markup' => 'It works!</br>Entity ID: ' . $quizStatus->id());
   }
 
 }

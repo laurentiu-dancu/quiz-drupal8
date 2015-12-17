@@ -10,6 +10,7 @@ namespace Drupal\quiz;
 use Drupal\Core\Entity\ContentEntityInterface;
 use Drupal\Core\Entity\EntityChangedInterface;
 use Drupal\Core\Entity\EntityTypeInterface;
+use Drupal\Core\TypedData\Plugin\DataType\Timestamp;
 use Drupal\user\EntityOwnerInterface;
 
 /**
@@ -18,6 +19,120 @@ use Drupal\user\EntityOwnerInterface;
  * @ingroup quiz
  */
 interface UserQuizStatusInterface extends ContentEntityInterface, EntityChangedInterface, EntityOwnerInterface {
-  // Add get/set methods for your configuration properties here.
 
+  /**
+   * Sets the quiz.
+   *
+   * @param \Drupal\quiz\QuizInterface $quiz
+   *    The quiz to be set.
+   * @return mixed
+   */
+  public function setQuiz(QuizInterface $quiz);
+
+
+  /**
+   * @return mixed
+   */
+  public function getQuiz();
+
+
+  /**
+   * @param $score
+   * @return mixed
+   */
+  public function setScore($score);
+
+
+  /**
+   * @return mixed
+   */
+  public function getScore();
+
+
+  /**
+   * @param $maxScore
+   * @return mixed
+   */
+  public function setMaxScore($maxScore);
+
+
+  /**
+   * @return mixed
+   */
+  public function getMaxScore();
+
+
+  /**
+   * @param $correctAnswerCount
+   * @return mixed
+   */
+  public function setCorrectAnswerCount($correctAnswerCount);
+
+
+  /**
+   * @return mixed
+   */
+  public function getCorrectAnswerCount();
+
+
+  /**
+   * @param $totalAnswerCount
+   * @return mixed
+   */
+  public function setTotalAnswerCount($totalAnswerCount);
+
+
+  /**
+   * @return mixed
+   */
+  public function getTotalAnswerCount();
+
+
+  /**
+   * @param $percent
+   * @return mixed
+   */
+  public function setPercent($percent);
+
+
+  /**
+   * @return mixed
+   */
+  public function getPercent();
+
+
+  /**
+   * @return mixed
+   */
+  public function getStarted();
+
+  /**
+   * @param int
+   * @return mixed
+   */
+  public function setFinished($timestamp);
+
+
+  /**
+   * @return mixed
+   */
+  public function getFinished();
+
+
+  /**
+   * @param \Drupal\quiz\QuestionInterface $question
+   * @return mixed
+   */
+  public function setLastQuestion(QuestionInterface $question);
+
+
+  /**
+   * @return mixed
+   */
+  public function getLastQuestion();
+
+  /**
+   * @return mixed
+   */
+  public function isFinished();
 }
