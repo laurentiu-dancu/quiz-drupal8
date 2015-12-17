@@ -1,0 +1,64 @@
+add answer entities:
+  title: 'Create new Answer entities'
+
+administer answer entities:
+  title: 'Administer Answer entities'
+  description: 'Allow to access the administration form to configure Answer entities.'
+
+delete answer entities:
+  title: 'Delete Answer entities'
+
+edit answer entities:
+  title: 'Edit Answer entities'
+
+view answer entities:
+  title: 'View Answer entities'
+
+add question entities:
+  title: 'Create new Question entities'
+
+administer question entities:
+  title: 'Administer Question entities'
+  description: 'Allow to access the administration form to configure Question entities.'
+
+delete question entities:
+  title: 'Delete Question entities'
+
+edit question entities:
+  title: 'Edit Question entities'
+
+view question entities:
+  title: 'View Question entities'
+add quiz entities:
+  title: 'Create new Quiz entities'
+
+administer quiz entities:
+  title: 'Administer Quiz entities'
+  description: 'Allow to access the administration form to configure Quiz entities.'
+
+delete quiz entities:
+  title: 'Delete Quiz entities'
+
+edit quiz entities:
+  title: 'Edit Quiz entities'
+
+view quiz entities:
+  title: 'View Quiz entities'
+
+take quiz:
+  title: 'Take Quiz'
+add user quiz status entities:
+  title: 'Create new User quiz status entities'
+
+administer user quiz status entities:
+  title: 'Administer User quiz status entities'
+  description: 'Allow to access the administration form to configure User quiz status entities.'
+
+delete user quiz status entities:
+  title: 'Delete User quiz status entities'
+
+edit user quiz status entities:
+  title: 'Edit User quiz status entities'
+
+view user quiz status entities:
+  title: 'View User quiz status entities'

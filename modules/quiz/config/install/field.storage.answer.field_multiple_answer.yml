@@ -1,0 +1,20 @@
+langcode: en
+status: true
+dependencies:
+  module:
+    - quiz
+id: answer.field_multiple_answer
+field_name: field_multiple_answer
+entity_type: answer
+type: multiple_answer
+settings:
+  max_length: 255
+  is_ascii: false
+  case_sensitive: false
+module: quiz
+locked: false
+cardinality: -1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

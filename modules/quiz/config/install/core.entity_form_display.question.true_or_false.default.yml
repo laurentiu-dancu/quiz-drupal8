@@ -1,0 +1,49 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.field.question.true_or_false.field_true_or_false
+    - quiz.question_type.true_or_false
+  module:
+    - quiz
+    - text
+id: question.true_or_false.default
+targetEntityType: question
+bundle: true_or_false
+mode: default
+content:
+  answer_type:
+    type: string_textfield
+    weight: 3
+    settings:
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+  field_true_or_false:
+    weight: 6
+    settings: {  }
+    third_party_settings: {  }
+    type: true_false_widget_type
+  question:
+    type: text_textfield
+    weight: -4
+    settings:
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+  quiz:
+    type: string_textfield
+    weight: -4
+    settings:
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+  user_id:
+    type: entity_reference_autocomplete
+    weight: 5
+    settings:
+      match_operator: CONTAINS
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+hidden: {  }

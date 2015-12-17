@@ -1,0 +1,16 @@
+quiz.question_type.*:
+  type: config_entity
+  label: 'Question Type config'
+  mapping:
+    id:
+      type: string
+      label: 'ID'
+    label:
+      type: label
+      label: 'Label'
+    uuid:
+      type: string
+      label: 'UUID'
+    langcode:
+      type: string
+      label: 'Default language'

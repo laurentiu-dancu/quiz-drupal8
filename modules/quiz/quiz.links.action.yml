@@ -1,0 +1,75 @@
+#entity.answer.add_page:
+#  route_name: 'entity.answer.add_page'
+#  title: 'Add Answer'
+#  appears_on:
+#    - entity.answer.collection
+#    - entity.answer.canonical
+
+#entity.answer.add_form:
+#  route_name: 'entity.answer.add_form'
+#  title: 'Add Answer type'
+#  appears_on:
+#    - entity.answer_type.collection
+
+
+#entity.answer.add_form:
+#  route_name: 'entity.answer.add_form'
+#  title: 'Answer this Question'
+#  appears_on:
+#    - entity.question.canonical
+
+entity.question_type.add_form:
+  route_name: 'entity.question_type.add_form'
+  title: 'Add Question'
+  appears_on:
+    - entity.question_type.collection
+    - entity.question_type.canonical
+
+entity.question.add_page_quiz:
+  route_name: 'entity.question.add_page_quiz'
+  title: 'Add Question'
+  appears_on:
+     - entity.quiz.canonical
+
+#entity.question_type.add_form:
+#  route_name: 'entity.question_type.add_form'
+#  title: 'Add Question Type'
+#  appears_on:
+#    - entity.question_type.collection
+
+#entity.quiz.add_form:
+#  route_name: entity.quiz.add_form
+#  title: 'Add Quiz'
+#  appears_on:
+#    - entity.quiz.collection
+#    - entity.quiz.canonical
+
+entity.quiz_type.add_form:
+  route_name: 'entity.quiz_type.add_form'
+  title: 'Add Quiz type'
+  appears_on:
+    - entity.quiz_type.collection
+
+entity.quiz.take_quiz:
+  route_name: 'entity.quiz.take_quiz'
+  title: 'Take Quiz'
+  appears_on:
+    - entity.quiz.canonical
+
+entity.quiz.delete_answers:
+  route_name: 'entity.quiz.delete_answers'
+  title: 'Reset my Quiz Answers'
+  appears_on:
+    - entity.quiz.canonical
+
+entity.quiz.add_page:
+  route_name: 'entity.quiz.add_page'
+  title: 'Add Quiz'
+  appears_on:
+   - entity.quiz.collectionentity.user_quiz_status.add_form:
+  route_name: entity.user_quiz_status.add_form
+  title: 'Add User quiz status'
+  appears_on:
+    - entity.user_quiz_status.collection
+    - entity.user_quiz_status.canonical
+

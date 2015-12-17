@@ -1,0 +1,19 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.field.answer.multiple_choice_answer.field_multiple_answer
+    - quiz.answer_type.multiple_choice_answer
+  module:
+    - quiz
+id: answer.multiple_choice_answer.default
+targetEntityType: answer
+bundle: multiple_choice_answer
+mode: default
+content:
+  field_multiple_answer:
+    weight: 0
+    settings: {  }
+    third_party_settings: {  }
+    type: multiple_answer_widget
+hidden: {  }

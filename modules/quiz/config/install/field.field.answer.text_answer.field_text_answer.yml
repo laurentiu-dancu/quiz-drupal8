@@ -1,0 +1,18 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.answer.field_text_answer
+    - quiz.answer_type.text_answer
+id: answer.text_answer.field_text_answer
+field_name: field_text_answer
+entity_type: answer
+bundle: text_answer
+label: Answer
+description: 'The answer for the question.'
+required: true
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string

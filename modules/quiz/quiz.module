@@ -1,0 +1,53 @@
+<?php
+
+/**
+ * @file
+ * Contains quiz.module..
+ */
+
+use Drupal\Core\Routing\RouteMatchInterface;
+
+/**
+ * Implements hook_help().
+ */
+function quiz_help($route_name, RouteMatchInterface $route_match) {
+  switch ($route_name) {
+    // Main module help for the quiz module.
+    case 'help.page.quiz':
+      $output = '';
+      $output .= '<h3>' . t('About') . '</h3>';
+      $output .= '<p>' . t('A module that enables the creation of quizzes.') . '</p>';
+      return $output;
+
+    default:
+  }
+}
+
+/**
+ * Implements hook_theme().
+ */
+function quiz_theme() {
+  $theme = array(
+    'quiz_list_questions' => array(
+      'variables' => array(
+        'content' => NULL,
+        'questions' => NULL,
+      ),
+      'template' => 'listQuestions'
+    ),
+    'quiz_list_results' => array(
+      'variables' => array(
+        'results' => NULL,
+        'markup' => NULL,
+      ),
+      'template' => 'listResults'
+    ),
+    'question' => array(
+      'variables' => array(
+        'content' => NULL,
+      )
+    )
+  );
+
+  return $theme;
+}

@@ -1,0 +1,17 @@
+langcode: en
+status: true
+dependencies:
+  module:
+    - quiz
+id: question.field_multiple_answer
+field_name: field_multiple_answer
+entity_type: question
+type: multiple_choice
+settings: {  }
+module: quiz
+locked: false
+cardinality: -1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

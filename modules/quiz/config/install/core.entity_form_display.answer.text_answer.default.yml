@@ -1,0 +1,19 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.field.answer.text_answer.field_text_answer
+    - quiz.answer_type.text_answer
+id: answer.text_answer.default
+targetEntityType: answer
+bundle: text_answer
+mode: default
+content:
+  field_text_answer:
+    weight: 0
+    settings:
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+    type: string_textfield
+hidden: {  }

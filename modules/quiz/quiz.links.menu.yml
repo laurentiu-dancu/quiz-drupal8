@@ -1,0 +1,70 @@
+# Answer menu items definition
+entity.answer.collection:
+  title: 'Answer list'
+  route_name: entity.answer.collection
+  description: 'List Answer entities'
+
+answer.admin.structure.settings:
+  title: Answer settings
+  description: 'Configure Answer entities'
+  route_name: answer.settings
+  parent: system.admin_structure
+
+# Answer type menu items definition
+entity.answer_type.collection:
+  title: 'Answer type'
+  route_name: entity.answer_type.collection
+  description: 'List Answer type'
+  parent: system.admin_structure
+
+# Question menu items definition
+entity.question.collection:
+  title: 'Question list'
+  route_name: entity.question.collection
+  description: 'List Question entities'
+
+question.admin.structure.settings:
+  title: Question settings
+  description: 'Configure Question entities'
+  route_name: question.settings
+  parent: system.admin_structure
+
+# Question Type menu items definition
+entity.question_type.collection:
+  title: 'Question Type'
+  route_name: entity.question_type.collection
+  description: 'List Question Type'
+  parent: system.admin_structure
+
+# Quiz menu items definition
+entity.quiz.collection:
+  title: 'Quiz list'
+  route_name: entity.quiz.collection
+  description: 'List Quiz entities'
+
+quiz.admin.structure.settings:
+  title: Quiz settings
+  description: 'Configure Quiz entities'
+  route_name: quiz.settings
+  parent: system.admin_structure
+
+# Quiz type menu items definition
+entity.quiz_type.collection:
+  title: 'Quiz type'
+  route_name: entity.quiz_type.collection
+  description: 'List Quiz type'
+  parent: system.admin_structure
+
+# User quiz status menu items definition
+entity.user_quiz_status.collection:
+  title: 'User quiz status list'
+  route_name: entity.user_quiz_status.collection
+  description: 'List User quiz status entities'
+  parent: system.admin_structure
+   weight: 100
+
+user_quiz_status.admin.structure.settings:
+  title: User quiz status settings
+  description: 'Configure User quiz status entities'
+  route_name: user_quiz_status.settings
+  parent: system.admin_structure

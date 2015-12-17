@@ -1,0 +1,17 @@
+langcode: en
+status: true
+dependencies:
+  module:
+    - quiz
+id: answer.field_true_or_false
+field_name: field_true_or_false
+entity_type: answer
+type: true_false_field
+settings: {  }
+module: quiz
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

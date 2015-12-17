@@ -1,0 +1,22 @@
+{#
+/**
+ * @file user_quiz_status.html.twig
+ * Default theme implementation to present User quiz status data.
+ *
+ * This template is used when viewing User quiz status pages.
+ *
+ *
+ * Available variables:
+ * - content: A list of content items. Use 'content' to print all content, or
+ * - attributes: HTML attributes for the container element.
+ *
+ * @see template_preprocess_user_quiz_status()
+ *
+ * @ingroup themeable
+ */
+#}
+<div{{ attributes.addClass('user_quiz_status') }}>
+  {% if content %}
+    {{- content -}}
+  {% endif %}
+</div>

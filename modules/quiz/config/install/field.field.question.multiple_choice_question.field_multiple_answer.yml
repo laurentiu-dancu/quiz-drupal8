@@ -1,0 +1,20 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.question.field_multiple_answer
+    - quiz.question_type.multiple_choice_question
+  module:
+    - quiz
+id: question.multiple_choice_question.field_multiple_answer
+field_name: field_multiple_answer
+entity_type: question
+bundle: multiple_choice_question
+label: 'Multiple Answer'
+description: 'Tick an option to make it a correct answer. Write the option name in the field under the option.'
+required: true
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: multiple_choice

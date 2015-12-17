@@ -1,0 +1,470 @@
+
+# Answer routing definition
+entity.answer.canonical:
+  path: 'quiz/answer/{answer}'
+  defaults:
+    _entity_view: 'answer'
+    _title: 'Answer'
+  requirements:
+    _entity_access: 'answer.view'
+
+entity.answer.collection:
+  path: '/admin/answer'
+  defaults:
+    _entity_list: 'answer'
+    _title: 'Answer list'
+  requirements:
+    _permission: 'view answer entities'
+  options:
+    _admin_route: TRUE
+
+entity.answer.add_page:
+  path: '/admin/answer/add'
+  defaults:
+    _entity_form: answer.add
+    _title: 'Add Answer'
+  requirements:
+    _permission: 'add answer entities'
+  options:
+    _admin_route: TRUE
+
+entity.answer.add_form:
+  path: '/admin/answer/add/{answer_type}/{question}'
+  defaults:
+    _controller: '\Drupal\quiz\Controller\AnswerController::add'
+    _title: 'Add Answer'
+  requirements:
+    _permission: 'add answer entities'
+  options:
+    _admin_route: TRUE
+
+entity.answer.add_answer:
+#  path: '/admin/answer/add/{question}'
+  path: '/quiz/answer/add/{question}'
+  defaults:
+    _controller: '\Drupal\quiz\Controller\AnswerController::answerQuestion'
+    _title_callback: '\Drupal\quiz\Controller\AnswerController::answerQuestionTitle'
+  requirements:
+    _permission: 'add answer entities'
+#  options:
+#    _admin_route: TRUE
+
+entity.answer.edit_form:
+  path: '/admin/answer/{answer}/edit'
+  defaults:
+    _entity_form: answer.edit
+    _title: 'Edit Answer'
+  requirements:
+    _permission: 'edit answer entities'
+  options:
+    _admin_route: TRUE
+
+entity.answer.delete_form:
+  path: '/admin/answer/{answer}/delete'
+  defaults:
+    _entity_form: answer.delete
+    _title: 'Delete Answer'
+  requirements:
+    _permission: 'delete answer entities'
+  options:
+    _admin_route: TRUE
+
+answer.settings:
+  path: 'admin/structure/answer'
+  defaults:
+   _form: '\Drupal\quiz\Entity\Form\AnswerSettingsForm'
+   _title: 'Answer settings'
+  requirements:
+    _permission: 'administer answer entities'
+  options:
+    _admin_route: TRUE
+
+
+# AnswerType routing definition
+entity.answer_type.collection:
+  path: '/admin/structure/answer_type'
+  defaults:
+    _entity_list: 'answer_type'
+    _title: 'Answer type'
+  requirements:
+    _permission: 'administer site configuration'
+  options:
+    _admin_route: TRUE
+
+entity.answer_type.add_form:
+  path: '/admin/structure/answer_type/add'
+  defaults:
+    _entity_form: 'answer_type.add'
+    _title: 'Add Answer type'
+  requirements:
+    _permission: 'administer site configuration'
+  options:
+    _admin_route: TRUE
+
+entity.answer_type.edit_form:
+  path: '/admin/structure/answer_type/{answer_type}'
+  defaults:
+    _entity_form: 'answer_type.edit'
+    _title: 'Edit Answer type'
+  requirements:
+    _permission: 'administer site configuration'
+  options:
+    _admin_route: TRUE
+
+entity.answer_type.delete_form:
+  path: '/admin/structure/answer_type/{answer_type}/delete'
+  defaults:
+    _entity_form: 'answer_type.delete'
+    _title: 'Delete Answer type'
+  requirements:
+    _permission: 'administer site configuration'
+  options:
+    _admin_route: TRUE
+
+
+# question routing definition
+entity.question.canonical:
+  path: '/admin/question/{question}'
+  defaults:
+    _entity_view: 'question'
+    _title: 'Question'
+  requirements:
+    _entity_access: 'question.view'
+  options:
+    _admin_route: TRUE
+
+entity.question.collection:
+  path: '/admin/question'
+  defaults:
+    _entity_list: 'question'
+    _title: 'Question list'
+  requirements:
+    _permission: 'view question entities'
+  options:
+    _admin_route: TRUE
+
+entity.question.add_page:
+  path: '/admin/question/add/'
+  defaults:
+    _controller: '\Drupal\quiz\Controller\QuestionController::addPage'
+    _title: 'Add Question'
+  requirements:
+    _permission: 'add question entities'
+
+entity.question.add_page_quiz:
+  path: '/admin/question/add/{quiz}'
+  defaults:
+    _controller: '\Drupal\quiz\Controller\QuestionController::addPageQuiz'
+    _title: 'Add Question'
+  requirements:
+    _permission: 'add quiz entities'
+
+entity.question.add_form:
+  path: '/admin/question/add/{quiz}/{question_type}'
+  defaults:
+    _controller: '\Drupal\quiz\Controller\QuestionController::add'
+    _title: 'Add Question'
+  requirements:
+    _permission: 'add question entities'
+  options:
+    _admin_route: TRUE
+
+entity.question.edit_form:
+  path: '/admin/question/{question}/edit'
+  defaults:
+    _entity_form: question.edit
+    _title: 'Edit Question'
+  requirements:
+    _permission: 'edit question entities'
+  options:
+    _admin_route: TRUE
+
+entity.question.delete_form:
+  path: '/admin/question/{question}/delete'
+  defaults:
+    _entity_form: question.delete
+    _title: 'Delete Question'
+  requirements:
+    _permission: 'delete question entities'
+  options:
+    _admin_route: TRUE
+
+question.settings:
+  path: 'admin/structure/question'
+  defaults:
+   _form: '\Drupal\quiz\Entity\Form\QuestionSettingsForm'
+   _title: 'Question settings'
+  requirements:
+    _permission: 'administer question entities'
+  options:
+    _admin_route: TRUE
+
+
+# question_type routing definition
+entity.question_type.collection:
+  path: '/admin/structure/question_type'
+  defaults:
+    _entity_list: 'question_type'
+    _title: 'Question Type'
+  requirements:
+    _permission: 'administer site configuration'
+  options:
+    _admin_route: TRUE
+
+entity.question_type.add_form:
+  path: '/admin/structure/question_type/add'
+  defaults:
+    _entity_form: 'question_type.add'
+    _title: 'Add Question Type'
+  requirements:
+    _permission: 'administer site configuration'
+  options:
+    _admin_route: TRUE
+
+entity.question_type.edit_form:
+  path: '/admin/structure/question_type/{question_type}'
+  defaults:
+    _entity_form: 'question_type.edit'
+    _title: 'Edit Question Type'
+  requirements:
+    _permission: 'administer site configuration'
+  options:
+    _admin_route: TRUE
+
+entity.question_type.delete_form:
+  path: '/admin/structure/question_type/{question_type}/delete'
+  defaults:
+    _entity_form: 'question_type.delete'
+    _title: 'Delete Question Type'
+  requirements:
+    _permission: 'administer site configuration'
+  options:
+    _admin_route: TRUE
+
+
+# _controller: '\Drupal\quiz\Controller\QuizController::listQuestions'
+# Quiz routing definition
+entity.quiz.canonical:
+  path: '/admin/quiz/{quiz}'
+  defaults:
+    _controller: '\Drupal\quiz\Controller\QuizController::listQuestions'
+    _title: 'Quiz'
+  requirements:
+    _entity_access: 'quiz.view'
+  options:
+    _admin_route: TRUE
+
+entity.quiz.canonical_user:
+  path: '/quiz/{quiz}'
+  defaults:
+    _controller: 'Drupal\quiz\Controller\QuizController::userDisplayQuiz'
+    _title_callback: 'Drupal\quiz\Controller\QuizController::userDisplayQuizTitle'
+  requirements:
+    _entity_access: 'quiz.view'
+
+entity.quiz.collection:
+  path: '/admin/quiz'
+  defaults:
+    _entity_list: 'quiz'
+    _title: 'Quiz list'
+  requirements:
+    _permission: 'view quiz entities'
+  options:
+    _admin_route: TRUE
+
+entity.quiz.add_page:
+  path: '/admin/quiz/add'
+  defaults:
+    _controller: '\Drupal\quiz\Controller\QuizController::add'
+    _title: 'Add Quiz'
+  requirements:
+    _permission: 'add quiz entities'
+  options:
+    _admin_route: TRUE
+
+entity.quiz.add_form:
+  path: '/admin/quiz/add/{quiz_type}'
+  defaults:
+    _controller: '\Drupal\quiz\Controller\QuizController::add'
+    _title: 'Add Quiz'
+  requirements:
+    _permission: 'add quiz entities'
+  options:
+    _admin_route: TRUE
+
+entity.quiz.edit_form:
+  path: '/admin/quiz/{quiz}/edit'
+  defaults:
+    _entity_form: quiz.edit
+    _title: 'Edit Quiz'
+  requirements:
+    _permission: 'edit quiz entities'
+  options:
+    _admin_route: TRUE
+
+entity.quiz.delete_form:
+  path: '/admin/quiz/{quiz}/delete'
+  defaults:
+    _entity_form: quiz.delete
+    _title: 'Delete Quiz'
+  requirements:
+    _permission: 'delete quiz entities'
+  options:
+    _admin_route: TRUE
+
+quiz.settings:
+  path: 'admin/structure/quiz'
+  defaults:
+   _form: '\Drupal\quiz\Entity\Form\QuizSettingsForm'
+   _title: 'Quiz settings'
+  requirements:
+    _permission: 'administer quiz entities'
+  options:
+    _admin_route: TRUE
+
+
+# QuizType routing definition
+entity.quiz_type.collection:
+  path: '/admin/structure/quiz_type'
+  defaults:
+    _entity_list: 'quiz_type'
+    _title: 'Quiz type'
+  requirements:
+    _permission: 'administer site configuration'
+  options:
+    _admin_route: TRUE
+
+entity.quiz_type.add_form:
+  path: '/admin/structure/quiz_type/add'
+  defaults:
+    _entity_form: 'quiz_type.add'
+    _title: 'Add Quiz type'
+  requirements:
+    _permission: 'administer site configuration'
+  options:
+    _admin_route: TRUE
+
+entity.quiz_type.edit_form:
+  path: '/admin/structure/quiz_type/{quiz_type}'
+  defaults:
+    _entity_form: 'quiz_type.edit'
+    _title: 'Edit Quiz type'
+  requirements:
+    _permission: 'administer site configuration'
+  options:
+    _admin_route: TRUE
+
+entity.quiz_type.delete_form:
+  path: '/admin/structure/quiz_type/{quiz_type}/delete'
+  defaults:
+    _entity_form: 'quiz_type.delete'
+    _title: 'Delete Quiz type'
+  requirements:
+    _permission: 'administer site configuration'
+  options:
+    _admin_route: TRUE
+
+
+entity.quiz.take_quiz:
+  path: '/admin/quiz/{quiz}/take'
+  defaults:
+    _controller: '\Drupal\quiz\Controller\QuizController::takeQuiz'
+    _title: 'Quiz'
+  requirements:
+    _entity_access: 'quiz.view'
+    _permission: 'take quiz'
+  options:
+    _admin_route: TRUE
+
+entity.quiz.take_quiz_question:
+  path: '/admin/quiz/{quiz}/take/{question}'
+  defaults:
+    _controller: '\Drupal\quiz\Controller\QuizController::takeQuizQuestion'
+    _title: 'Quiz'
+  requirements:
+    _entity_access: 'quiz.view'
+    _entity_access: 'question.view'
+    _permission: 'take quiz'
+  options:
+    _admin_route: TRUE
+
+entity.quiz.delete_answers:
+  path: '/admin/quiz/{quiz}/reset'
+  defaults:
+    _controller: '\Drupal\quiz\Controller\QuizController::resetQuiz'
+    _title: 'Reset Quiz Answers'
+  requirements:
+    _entity_access: 'quiz.view'
+    _permission: 'delete answer entities'
+  options:
+    _admin_route: TRUE
+# UserQuizStatus routing definition
+entity.user_quiz_status.canonical:
+  path: '/admin/structure/user_quiz_status/{user_quiz_status}'
+  defaults:
+    _entity_view: 'user_quiz_status'
+    _title: 'User quiz status'
+  requirements:
+    _entity_access: 'user_quiz_status.view'
+  options:
+    _admin_route: TRUE
+
+entity.user_quiz_status.collection:
+  path: '/admin/structure/user_quiz_status'
+  defaults:
+    _entity_list: 'user_quiz_status'
+    _title: 'User quiz status list'
+  requirements:
+    _permission: 'view user quiz status entities'
+  options:
+    _admin_route: TRUE
+
+entity.user_quiz_status.add_form:
+  path: '/admin/structure/user_quiz_status/add'
+  defaults:
+    _entity_form: user_quiz_status.add
+    _title: 'Add User quiz status'
+  requirements:
+    _permission: 'add user quiz status entities'
+  options:
+    _admin_route: TRUE
+
+entity.user_quiz_status.edit_form:
+  path: '/admin/structure/user_quiz_status/{user_quiz_status}/edit'
+  defaults:
+    _entity_form: user_quiz_status.edit
+    _title: 'Edit User quiz status'
+  requirements:
+    _permission: 'edit user quiz status entities'
+  options:
+    _admin_route: TRUE
+
+entity.user_quiz_status.delete_form:
+  path: '/admin/structure/user_quiz_status/{user_quiz_status}/delete'
+  defaults:
+    _entity_form: user_quiz_status.delete
+    _title: 'Delete User quiz status'
+  requirements:
+    _permission: 'delete user quiz status entities'
+  options:
+    _admin_route: TRUE
+
+user_quiz_status.settings:
+  path: 'admin/structure/user_quiz_status'
+  defaults:
+   _form: '\Drupal\quiz\Entity\Form\UserQuizStatusSettingsForm'
+   _title: 'User quiz status settings'
+  requirements:
+    _permission: 'administer user quiz status entities'
+  options:
+    _admin_route: TRUE
+
+entity.user_quiz_status.add_code:
+  path: '/admin/user_quiz/{quiz}'
+  defaults:
+    _controller: '\Drupal\quiz\Controller\QuizController::newUserQuizStatus'
+    _title: 'Quiz'
+  requirements:
+    _entity_access: 'quiz.view'
+  options:
+    _admin_route: TRUE

@@ -1,0 +1,19 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.field.answer.true_or_false.field_true_or_false
+    - quiz.answer_type.true_or_false
+  module:
+    - quiz
+id: answer.true_or_false.default
+targetEntityType: answer
+bundle: true_or_false
+mode: default
+content:
+  field_true_or_false:
+    weight: 0
+    settings: {  }
+    third_party_settings: {  }
+    type: true_false_widget_type
+hidden: {  }

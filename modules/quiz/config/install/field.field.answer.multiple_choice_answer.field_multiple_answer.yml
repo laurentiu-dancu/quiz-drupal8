@@ -1,0 +1,20 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.answer.field_multiple_answer
+    - quiz.answer_type.multiple_choice_answer
+  module:
+    - quiz
+id: answer.multiple_choice_answer.field_multiple_answer
+field_name: field_multiple_answer
+entity_type: answer
+bundle: multiple_choice_answer
+label: 'Multiple Answer'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: multiple_answer

@@ -1,0 +1,20 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.question.field_true_or_false
+    - quiz.question_type.true_or_false
+  module:
+    - quiz
+id: question.true_or_false.field_true_or_false
+field_name: field_true_or_false
+entity_type: question
+bundle: true_or_false
+label: Answer
+description: ''
+required: true
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: true_false_field

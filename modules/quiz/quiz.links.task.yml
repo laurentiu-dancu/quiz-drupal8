@@ -1,0 +1,87 @@
+# Answer routing definition
+answer.settings_tab:
+  route_name: answer.settings
+  title: 'Settings'
+  base_route: answer.settings
+
+entity.answer.canonical:
+  route_name: entity.answer.canonical
+  base_route: entity.answer.canonical
+  title: 'View'
+
+entity.answer.edit_form:
+  route_name: entity.answer.edit_form
+  base_route: entity.answer.canonical
+  title: Edit
+
+entity.answer.delete_form:
+  route_name:  entity.answer.delete_form
+  base_route:  entity.answer.canonical
+  title: Delete
+  weight: 10
+
+# Question routing definition
+question.settings_tab:
+  route_name: question.settings
+  title: 'Settings'
+  base_route: question.settings
+
+entity.question.canonical:
+  route_name: entity.question.canonical
+  base_route: entity.question.canonical
+  title: 'View'
+
+entity.question.edit_form:
+  route_name: entity.question.edit_form
+  base_route: entity.question.canonical
+  title: Edit
+
+entity.question.delete_form:
+  route_name:  entity.question.delete_form
+  base_route:  entity.question.canonical
+  title: Delete
+  weight: 10
+
+# Quiz routing definition
+quiz.settings_tab:
+  route_name: quiz.settings
+  title: 'Settings'
+  base_route: quiz.settings
+
+entity.quiz.canonical:
+  route_name: entity.quiz.canonical
+  base_route: entity.quiz.canonical
+  title: 'View'
+
+entity.quiz.edit_form:
+  route_name: entity.quiz.edit_form
+  base_route: entity.quiz.canonical
+  title: Edit
+
+entity.quiz.delete_form:
+  route_name:  entity.quiz.delete_form
+  base_route:  entity.quiz.canonical
+  title: Delete
+  weight: 10
+
+# User quiz status routing definition
+user_quiz_status.settings_tab:
+  route_name: user_quiz_status.settings
+  title: 'Settings'
+  base_route: user_quiz_status.settings
+entity.user_quiz_status.canonical:
+  route_name: entity.user_quiz_status.canonical
+  base_route: entity.user_quiz_status.canonical
+  title: 'View'
+
+entity.user_quiz_status.edit_form:
+  route_name: entity.user_quiz_status.edit_form
+  base_route: entity.user_quiz_status.canonical
+  title: Edit
+
+entity.user_quiz_status.delete_form:
+  route_name:  entity.user_quiz_status.delete_form
+  base_route:  entity.user_quiz_status.canonical
+  title: Delete
+  weight: 10
+

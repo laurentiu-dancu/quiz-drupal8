@@ -1,0 +1,16 @@
+
+
+{% if questions %}
+    {{- questions -}}
+{% else %}
+    <p>There are no questions for this Quiz.</p>
+{% endif %}
+{#
+{<div{{ attributes.addClass('question') }}>
+<ul>
+    {% for key, question in questions %}
+    <li>{{ key }}: {{ question }}</li>
+    {% endfor %}
+</ul>
+</div>
+#}

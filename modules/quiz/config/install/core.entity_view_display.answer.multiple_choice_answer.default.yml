@@ -1,0 +1,34 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.field.answer.multiple_choice_answer.field_multiple_answer
+    - quiz.answer_type.multiple_choice_answer
+  module:
+    - quiz
+    - user
+id: answer.multiple_choice_answer.default
+targetEntityType: answer
+bundle: multiple_choice_answer
+mode: default
+content:
+  field_multiple_answer:
+    weight: 1
+    label: above
+    settings: {  }
+    third_party_settings: {  }
+    type: multiple_answer_formatter
+  question:
+    label: above
+    type: string
+    weight: -4
+    settings:
+      link_to_entity: false
+    third_party_settings: {  }
+  user_id:
+    label: hidden
+    type: author
+    weight: 0
+    settings: {  }
+    third_party_settings: {  }
+hidden: {  }
