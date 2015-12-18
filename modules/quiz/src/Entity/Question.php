@@ -15,6 +15,7 @@ use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\quiz\QuestionInterface;
 use Drupal\quiz\AnswerTypeInterface;
+use Drupal\quiz\UserQuizStatusInterface;
 use Drupal\user\UserInterface;
 
 /**
@@ -137,6 +138,17 @@ class Question extends ContentEntityBase implements QuestionInterface {
     $aids = $query
       ->Condition('user_id', $account->id())
       ->Condition('question', $this->id())
+      ->execute();
+    return count($aids);
+  }
+
+  public function getUserQuizStateAnswersCount(AccountInterface $account, UserQuizStatusInterface $state) {
+    $answerStorage = static::entityTypeManager()->getStorage('answer');
+    $query = $answerStorage->getQuery();
+    $aids = $query
+      ->Condition('user_id', $account->id())
+      ->Condition('question', $this->id())
+      ->Condition('user_quiz_status', $state->id())
       ->execute();
     return count($aids);
   }

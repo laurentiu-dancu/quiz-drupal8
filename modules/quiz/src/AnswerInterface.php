@@ -44,4 +44,8 @@ interface AnswerInterface extends ContentEntityInterface, EntityChangedInterface
    *   Returns the id of question entity.
    */
   public function getQuestionId();
+
+  public function setUserQuizStatus(UserQuizStatusInterface $status);
+
+  public function getUserQuizStatusId();
 }

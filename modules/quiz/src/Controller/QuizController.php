@@ -8,6 +8,7 @@
 namespace Drupal\quiz\Controller;
 
 use DateTime;
+use Drupal\Component\Utility\SafeMarkup;
 use Drupal\Core\Controller\ControllerBase;
 use Drupal\Core\Entity\EntityType;
 use Drupal\Core\Routing\UrlGeneratorTrait;
@@ -20,6 +21,8 @@ use Drupal\quiz\QuestionInterface;
 use Drupal\quiz\QuestionListBuilder;
 use Drupal\quiz\QuizInterface;
 use Drupal\quiz\QuizTypeInterface;
+use Drupal\Core\Link;
+use Drupal\quiz\UserQuizStatusInterface;
 use Drupal\user\UserInterface;
 
 /**
@@ -92,7 +95,7 @@ class QuizController extends ControllerBase {
     $questions = $quiz->getQuestions();
     if (count($questions)) {
 
-      $status = $quiz->getStatus($this->currentUser());
+      $status = $quiz->getActiveStatus($this->currentUser());
       //while(1);
       // If no open quiz session is found, create one.
       if($status == NULL) {
@@ -106,12 +109,12 @@ class QuizController extends ControllerBase {
       $nextQuestion = NULL;
       foreach ($questions as $question) {
         /* @var $question \Drupal\quiz\Entity\Question */
-        if ($status->getLastQuestion() == NULL || $next) {
-          kint($status->getLastQuestion());
+        if ($status->getLastQuestionId() == NULL || $next) {
+          kint($status->getLastQuestionId());
           $nextQuestion = $question;
           break;
         }
-        if ($status->getLastQuestion() == $question->id()) {
+        if ($status->getLastQuestionId() == $question->id()) {
           $next = 1;
         }
 
@@ -119,20 +122,22 @@ class QuizController extends ControllerBase {
 
       // There is a question to be answered case.
       if ($nextQuestion != NULL) {
+        $status->setCurrentQuestion($nextQuestion);
+        $status->save();
         return $this->redirect('entity.answer.add_answer', [
           'question' => $nextQuestion->id(),
         ]);
       }
       // Quiz completed case.
       else {
-        kint($status->isFinished());
+        //kint($status->isFinished());
         if($status->isFinished() == 0) {
-          $status->setScore($this->evaluate($quiz, $this->currentUser()));
+          $status->setScore($this->evaluate($status, $this->currentUser()));
           $status->setMaxScore($this->getMaxScore($quiz));
           $status->setCorrectAnswerCount(0);
-          $status->setTotalAnswerCount(count($this->getQuestionIds($quiz)));
           $status->setPercent($quiz->get('percent')->value);
           $status->setFinished(time());
+          $status->setCurrentQuestion();
           $status->save();
         }
         return $this->redirect('entity.quiz.canonical_user', [
@@ -141,23 +146,6 @@ class QuizController extends ControllerBase {
       }
     }
 
-    /*
-    // Only attempt quiz if it has questions.
-    if (count($questions)) {
-      foreach ($questions as $question) {
-        /* @var $question \Drupal\quiz\Entity\Question
-        if ($question->getUserAnswersCount($this->currentUser())) {
-          return $this->redirect('entity.quiz.take_quiz_question', [
-            'question' => $question->id(),
-            'quiz' => $quiz->id()
-          ]);
-        }
-        return $this->redirect('entity.answer.add_answer', [
-          'question' => $question->id(),
-        ]);
-      }
-    }
-*/
     drupal_set_message($this->t('This quiz has no questions.'), 'warning');
     return $this->redirect('entity.quiz.canonical_user', [
       'quiz' => $quiz->id(),
@@ -165,71 +153,29 @@ class QuizController extends ControllerBase {
   }
 
   /**
-   * Gets the next question for a quiz.
-   *
-   * @param \Drupal\quiz\QuizInterface $quiz
-   * @param \Drupal\quiz\QuestionInterface $question
-   * @return \Symfony\Component\HttpFoundation\RedirectResponse
-   *    Returns a redirect to the next answer or back to quiz if no next answer.
-   */
-  /*
-  public function takeQuizQuestion(QuizInterface $quiz, QuestionInterface $question) {
-
-    // Getting IDs of questions for this quiz
-    $storage = static::entityTypeManager()->getStorage('question');
-    $query = $storage->getQuery();
-    $qids = $query->Condition('quiz', $quiz->id())->execute();
-    $next = 0;
-    foreach ($qids as $qid) {
-      if ($next == 1) {
-        $quest = $storage->load($qid);
-        /* @var $quest \Drupal\quiz\Entity\Question
-        if($this->isAnswered($quest, $this->currentUser())) {
-          return $this->redirect('entity.quiz.take_quiz_question', [
-            'question' => $quest->id(),
-            'quiz' => $quiz->id()
-          ]);
-        }
-        else {
-          return $this->redirect('entity.answer.add_answer', [
-            'question' => $quest->id(),
-          ]);
-        }
-      }
-      if ($qid == $question->id()) {
-        $next = 1;
-      }
-    }
-    return $this->redirect('entity.quiz.canonical_user', [
-      'quiz' => $quiz->id(),
-    ]);
-
-  }
-*/
-
-  /**
-   * Gets all the answers for a quiz for an user.
-   *
-   * @param \Drupal\quiz\QuizInterface $quiz
+   * @param \Drupal\quiz\UserQuizStatusInterface $state
    * @param \Drupal\Core\Session\AccountInterface $user
    * @return array
-   *    Returns answers for a quiz for an user.
    */
-  public function getAnswers(QuizInterface $quiz, AccountInterface $user) {
+  public function getAnswers(UserQuizStatusInterface $state, AccountInterface $user) {
     $answerStorage = static::entityTypeManager()->getStorage('answer');
     $query = $answerStorage->getQuery();
-    $aids = $query->Condition('user_id', $user->id())->execute();
-
-    $answerArray = array();
+    kint($state->id());
+    $aids = $query
+      ->Condition('user_id', $user->id())
+      ->Condition('user_quiz_status', $state->id())
+      ->execute();
     $answers = $answerStorage->loadMultiple($aids);
 
+    /*
     foreach ($answers as $answer) {
-      /* @var $answer \Drupal\quiz\Entity\Answer */
-      if ($answer->getQuestion()->getQuizId() == $quiz->id()) {
+      /* @var $answer \Drupal\quiz\Entity\Answer
+      if ($answer->getUserQuizStatusId() == $state->id()) {
         $answerArray[] = $answer;
       }
     }
-    return $answerArray;
+  */
+    return $answers;
   }
 
   public function getQuestions(QuizInterface $quiz) {
@@ -273,6 +219,77 @@ class QuizController extends ControllerBase {
     return $quiz->get('name')->value;
   }
 
+
+  public function userDisplayQuiz(QuizInterface $quiz) {
+    $statuses = $quiz->getStatuses($this->currentUser());
+
+    $link = '';
+    $list = '';
+    $markup = '';
+    //the quiz was started at least once
+
+
+    $attempted = 0;
+    $finished = 0;
+    $questions = count($this->getQuestionIds($quiz));
+    $percent = $quiz->get('percent')->value;
+    $description = $quiz->get('description')->value;
+
+    kint($statuses);
+    if(!empty($statuses)) {
+      $status = array_pop($statuses);
+      $statuses[] = $status;
+      /* @var $status \Drupal\quiz\Entity\UserQuizStatus */
+      if ($status->isFinished()) {
+        $score = $status->getScore();
+        $maxScore = $status->getMaxScore();
+        $percent = $status->getPercent();
+        $timeTaken = $status->getFinished() - $status->getStarted();
+        $attempted = $finished = count($statuses);
+        $link .= SafeMarkup::format('<p>Time taken: @minute minutes and @second seconds<br>',['@minute' => round($timeTaken/60), '@second' => $timeTaken%60]);
+        $link .= SafeMarkup::format('You scored @score out of @max points</p>',['@score' => $score, '@max' => $maxScore]);
+        if($score/$maxScore >= $percent/100)
+          $link .= '<p>You passed this quiz with '. round($score/$maxScore, 2) * 100 .'%!</p>';
+        else
+          $link .= '<p>You failed this quiz with '. round($score/$maxScore, 2) * 100 .'%.</p>';
+
+        $list = $this->getResultsTable($status, $this->currentUser());
+        kint($link);
+        $url = Url::fromRoute('entity.quiz.take_quiz', ['quiz' => $quiz->id()]);
+        $href = Link::fromTextAndUrl('Retake Quiz', $url)->toRenderable();
+        $link .= render($href);
+      }
+      else {
+        $url = Url::fromRoute('entity.quiz.take_quiz', ['quiz' => $quiz->id()]);
+        $href = Link::fromTextAndUrl('Continue Quiz', $url)->toRenderable();
+        $link .= "<p>This quiz is already active.</p>";
+        $link .= render($href);
+      }
+    }
+    //the quiz was never attempted
+    else {
+      $url = Url::fromRoute('entity.quiz.take_quiz', ['quiz' => $quiz->id()]);
+      $link = Link::fromTextAndUrl('Take Quiz', $url)->toRenderable();
+      $link = render($link);
+    }
+
+
+    $markup .= SafeMarkup::format('<p>@description</p>',['@description' => $description]);
+    $markup .= SafeMarkup::format('<p>Number of questions: @questions<br>',['@questions' => $questions]);
+    $markup .= SafeMarkup::format('Pass rate: @percent%<br>',['@percent' => $percent]);
+    $markup .= SafeMarkup::format('Attempted @times times</p>',['@times' => count($statuses)]);
+    kint(count($statuses));
+
+    $markup .= $link;
+    //$list = "";
+
+
+    return array(
+      '#theme' => 'quiz_list_results',
+      '#markup' => $markup,
+      '#results' => $list,
+    );
+  }
   /**
    * Displays the status for a quiz for a normal user
    *
@@ -280,9 +297,27 @@ class QuizController extends ControllerBase {
    * @return array
    *  Returns a rendable array with a markup
    */
-  public function userDisplayQuiz(QuizInterface $quiz) {
+  /*
+  public function userDisplayQuizRedux(QuizInterface $quiz) {
     $answeredQuestions = count($this->getAnswers($quiz, $this->currentUser()));
     $nrOfQuestions = count($this->getQuestionIds($quiz));
+
+    //kint($nrOfQuestions);
+    $statuses = $quiz->getStatuses($this->currentUser());
+
+    if(!empty($statuses)) {
+      kint($statuses);
+      $status = array_pop($statuses);
+      /* @var $status \Drupal\quiz\Entity\UserQuizStatus
+      $answeredQuestions = $status->getTotalAnswerCount();
+      $percent = $status->getPercent();
+    }
+    else {
+      $answeredQuestions = 0;
+    }
+
+
+    kint($answeredQuestions);
 
 
     $started = "no";
@@ -292,8 +327,11 @@ class QuizController extends ControllerBase {
     $linkGenerator = $this->getLinkGenerator();
 
 
+
+    kint($percent);
+
     $list = array();
-    if($answeredQuestions == 0) {
+    if($answeredQuestions == 0 || $answeredQuestions == NULL) {
       $takeQuizUrl = Url::fromRoute('entity.quiz.take_quiz', ['quiz' => $quiz->id()]);
       $link = $linkGenerator->generate('Take Quiz', $takeQuizUrl);
     }
@@ -337,16 +375,13 @@ class QuizController extends ControllerBase {
       '#markup' => $markup,
     );
   }
-
+*/
   /**
-   * Builds a rendable array containing a table of answers for a quiz.
-   *
-   * @param \Drupal\quiz\QuizInterface $quiz
+   * @param \Drupal\quiz\UserQuizStatusInterface $state
    * @param \Drupal\Core\Session\AccountInterface $user
-   * @return array
-   *  Returns a rendable array containing a table.
+   * @return mixed
    */
-  public function getResultsTable(QuizInterface $quiz, AccountInterface $user) {
+  public function getResultsTable(UserQuizStatusInterface $state, AccountInterface $user) {
     $answerStorage = static::entityTypeManager()->getStorage('answer');
 
     $header = array();
@@ -357,7 +392,9 @@ class QuizController extends ControllerBase {
 
     $rows = array();
     $counter = 1;
-    $answers = $this->getAnswers($quiz, $user);
+    kint($counter);
+    $answers = $this->getAnswers($state, $user);
+
     foreach ($answers as $answer) {
       /* @var $answer \Drupal\quiz\Entity\Answer */
 
@@ -448,16 +485,13 @@ class QuizController extends ControllerBase {
   }
 
   /**
-   * Gets the score a user made from a quiz.
-   *
-   * @param \Drupal\quiz\QuizInterface $quiz
+   * @param \Drupal\quiz\UserQuizStatusInterface $state
    * @param \Drupal\Core\Session\AccountInterface $user
    * @return int
-   *  Returns the score.
    */
-  public function evaluate(QuizInterface $quiz, AccountInterface $user) {
+  public function evaluate(UserQuizStatusInterface $state, AccountInterface $user) {
     $score = 0;
-    $answers = $this->getAnswers($quiz, $user);
+    $answers = $this->getAnswers($state, $user);
     foreach ($answers as $answer) {
       /* @var $answer \Drupal\quiz\Entity\Answer */
       $question = $answer->getQuestion();

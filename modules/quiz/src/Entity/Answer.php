@@ -14,6 +14,7 @@ use Drupal\Core\Entity\EntityChangedTrait;
 use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\quiz\AnswerInterface;
 use Drupal\quiz\QuestionInterface;
+use Drupal\quiz\UserQuizStatusInterface;
 use Drupal\user\UserInterface;
 
 /**
@@ -133,6 +134,15 @@ class Answer extends ContentEntityBase implements AnswerInterface {
     return $this->bundle();
   }
 
+  public function setUserQuizStatus(UserQuizStatusInterface $status) {
+    $this->set('user_quiz_status', $status);
+    return $this;
+  }
+
+  public function getUserQuizStatusId() {
+    return $this->get('user_quiz_status')->target_id;
+  }
+
   /**
    * {@inheritdoc}
    */
@@ -152,6 +162,10 @@ class Answer extends ContentEntityBase implements AnswerInterface {
         'type' => 'string',
         'weight' => -4,
       ));
+
+    $fields['user_quiz_status'] = BaseFieldDefinition::create('entity_reference')
+      ->setLabel(t('User-Quiz status'))
+      ->setSetting('target_type', 'user_quiz_status');
 
 
     $fields['uuid'] = BaseFieldDefinition::create('uuid')

@@ -109,7 +109,7 @@ class UserQuizStatus extends ContentEntityBase implements UserQuizStatusInterfac
    * {@inheritdoc}
    */
   public function getQuiz() {
-    return $this->get('quiz');
+    return $this->get('quiz')->entity;
   }
 
   /**
@@ -124,7 +124,7 @@ class UserQuizStatus extends ContentEntityBase implements UserQuizStatusInterfac
    * {@inheritdoc}
    */
   public function getScore() {
-    return $this->get('score');
+    return $this->get('score')->value;
   }
 
   /**
@@ -139,7 +139,7 @@ class UserQuizStatus extends ContentEntityBase implements UserQuizStatusInterfac
    * {@inheritdoc}
    */
   public function getMaxScore() {
-    return $this->get('max_score');
+    return $this->get('max_score')->value;
   }
 
   /**
@@ -154,7 +154,7 @@ class UserQuizStatus extends ContentEntityBase implements UserQuizStatusInterfac
    * {@inheritdoc}
    */
   public function getCorrectAnswerCount() {
-    return $this->get('correct_answers');
+    return $this->get('correct_answers')->value;
   }
 
   /**
@@ -169,7 +169,7 @@ class UserQuizStatus extends ContentEntityBase implements UserQuizStatusInterfac
    * {@inheritdoc}
    */
   public function getTotalAnswerCount() {
-    return $this->get('total_answers');
+    return $this->get('total_answers')->value;
   }
 
   /**
@@ -184,14 +184,14 @@ class UserQuizStatus extends ContentEntityBase implements UserQuizStatusInterfac
    * {@inheritdoc}
    */
   public function getPercent() {
-    return $this->get('percent');
+    return $this->get('percent')->value;
   }
 
   /**
    * {@inheritdoc}
    */
   public function getStarted() {
-    return $this->get('started');
+    return $this->get('started')->value;
   }
 
   /**
@@ -206,7 +206,7 @@ class UserQuizStatus extends ContentEntityBase implements UserQuizStatusInterfac
    * {@inheritdoc}
    */
   public function getFinished() {
-    return $this->get('finished');
+    return $this->get('finished')->value;
   }
 
   /**
@@ -220,14 +220,23 @@ class UserQuizStatus extends ContentEntityBase implements UserQuizStatusInterfac
   /**
    * {@inheritdoc}
    */
-  public function getLastQuestion() {
+  public function getLastQuestionId() {
     /*
     kint($this->get('last_question')->entity);
     if ($this->get('last_question')->target_id == NULL)
       return NULL;
     */
-    kint($this->get('last_question')->target_id);
+    //kint($this->get('last_question')->target_id);
     return $this->get('last_question')->target_id;
+  }
+
+  public function setCurrentQuestion(QuestionInterface $question = NULL) {
+    $this->set('current_question', $question);
+    return $this;
+  }
+
+  public function getCurrentQuestionId() {
+    return $this->get('current_question')->target_id;
   }
 
   public function isFinished() {
@@ -285,7 +294,12 @@ class UserQuizStatus extends ContentEntityBase implements UserQuizStatusInterfac
     $fields['last_question'] = BaseFieldDefinition::create('entity_reference')
       ->setLabel(t('Last question'))
       ->setDescription(t('The last question in a quiz that has been answered.'))
-      ->setSetting('target_type', 'quiz');
+      ->setSetting('target_type', 'question');
+
+    $fields['current_question'] = BaseFieldDefinition::create('entity_reference')
+      ->setLabel(t('Current question'))
+      ->setDescription(t('The question that is authorized to be answered'))
+      ->setSetting('target_type', 'question');
 
     $fields['started'] = BaseFieldDefinition::create('created')
       ->setLabel(t('Started'))

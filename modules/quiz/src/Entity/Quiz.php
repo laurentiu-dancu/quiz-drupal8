@@ -126,12 +126,12 @@ class Quiz extends ContentEntityBase implements QuizInterface {
     $query = $statusStorage->getQuery();
     $qidList = $query
       ->condition('quiz', $this->id())
-      ->condition('user', $user->id())
+      ->condition('user_id', $user->id())
       ->execute();
     return $statusStorage->loadMultiple($qidList);
   }
 
-  public function getStatus(AccountInterface $user) {
+  public function getActiveStatus(AccountInterface $user) {
     $statusStorage = static::entityTypeManager()->getStorage('user_quiz_status');
     $query = $statusStorage->getQuery();
     $qidList = $query

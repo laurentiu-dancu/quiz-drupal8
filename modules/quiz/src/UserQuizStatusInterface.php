@@ -129,10 +129,21 @@ interface UserQuizStatusInterface extends ContentEntityInterface, EntityChangedI
   /**
    * @return mixed
    */
-  public function getLastQuestion();
+  public function getLastQuestionId();
 
   /**
    * @return mixed
    */
   public function isFinished();
+
+  /**
+   * @param \Drupal\quiz\QuestionInterface|NULL $question
+   * @return mixed
+   */
+  public function setCurrentQuestion(QuestionInterface $question = NULL);
+
+  /**
+   * @return mixed
+   */
+  public function getCurrentQuestionId();
 }

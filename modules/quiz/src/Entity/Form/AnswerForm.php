@@ -26,9 +26,29 @@ class AnswerForm extends ContentEntityForm {
     $entity = $this->entity;
     $question = $entity->getQuestion();
     /* @var $question \Drupal\quiz\Entity\Question */
-    $count = $question->getUserAnswersCount($this->currentUser());
+
+    $question = $entity->getQuestion();
+    /* @var $question \Drupal\quiz\Entity\Question */
+    $quiz = $question->getQuiz();
+
+    $status = $quiz->getActiveStatus($this->currentUser());
+    /* @var $status \Drupal\quiz\Entity\UserQuizStatus */
+
+    if ($status == NULL)
+      return $this->redirect('entity.quiz.canonical_user', [
+        'quiz' => $question->getQuiz()->id(),
+      ]);
+
+    if($status->getCurrentQuestionId() != $question->id())
+      return $this->redirect('entity.quiz.canonical_user', [
+        'quiz' => $question->getQuiz()->id(),
+      ]);
+
+    $count = $question->getUserQuizStateAnswersCount($this->currentUser(), $status);
     if($count) {
-      return $this->redirect('entity.quiz.take_quiz', [
+      $status->setLastQuestion($question);
+      $status->save();
+      return $this->redirect('entity.quiz.canonical_user', [
         'quiz' => $question->getQuiz()->id(),
       ]);
     }
@@ -64,13 +84,18 @@ class AnswerForm extends ContentEntityForm {
   public function save(array $form, FormStateInterface $form_state) {
     $entity = $this->entity;
     /* @var $entity \Drupal\quiz\Entity\Answer */
-    $status = $entity->save();
     $question = $entity->getQuestion();
     /* @var $question \Drupal\quiz\Entity\Question */
     $quiz = $question->getQuiz();
-    $status = $quiz->getStatus($this->currentUser());
+    $status = $quiz->getActiveStatus($this->currentUser());
     /* @var $status \Drupal\quiz\Entity\UserQuizStatus */
     $status->setLastQuestion($question);
+    $entity->setUserQuizStatus($status);
+    $entity->save();
+    $answers = $status->getTotalAnswerCount();
+    if($answers = NULL)
+      $answers = 0;
+    $status->setTotalAnswerCount($answers + 1);
     $status->save();
     /* @var $quiz \Drupal\quiz\Entity\Quiz */
     $form_state->setRedirect('entity.quiz.take_quiz', [

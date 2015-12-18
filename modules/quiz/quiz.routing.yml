@@ -468,3 +468,11 @@ entity.user_quiz_status.add_code:
     _entity_access: 'quiz.view'
   options:
     _admin_route: TRUE
+
+entity.quiz.canonical_user_redux:
+  path: '/quiz/{quiz}/redux'
+  defaults:
+    _controller: 'Drupal\quiz\Controller\QuizController::userDisplayQuizRedux'
+    _title_callback: 'Drupal\quiz\Controller\QuizController::userDisplayQuizTitle'
+  requirements:
+    _entity_access: 'quiz.view'
