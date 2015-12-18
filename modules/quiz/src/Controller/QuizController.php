@@ -160,12 +160,13 @@ class QuizController extends ControllerBase {
   public function getAnswers(UserQuizStatusInterface $state, AccountInterface $user) {
     $answerStorage = static::entityTypeManager()->getStorage('answer');
     $query = $answerStorage->getQuery();
-    kint($state->id());
     $aids = $query
       ->Condition('user_id', $user->id())
       ->Condition('user_quiz_status', $state->id())
       ->execute();
     $answers = $answerStorage->loadMultiple($aids);
+
+
 
     /*
     foreach ($answers as $answer) {
@@ -176,6 +177,23 @@ class QuizController extends ControllerBase {
     }
   */
     return $answers;
+  }
+
+  public function getAllAnswers(QuizInterface $quiz, AccountInterface $user) {
+    $answerStorage = static::entityTypeManager()->getStorage('answer');
+    $query = $answerStorage->getQuery();
+    $aids = $query
+      ->Condition('user_id', $user->id())
+      ->execute();
+    $answers = $answerStorage->loadMultiple($aids);
+    $answerArray = array();
+    foreach ($answers as $answer) {
+      /* @var $answer \Drupal\quiz\Entity\Answer */
+      if ($answer->getQuestion()->getQuiz()->id() == $quiz->id()) {
+        $answerArray[] = $answer;
+      }
+    }
+    return $answerArray;
   }
 
   public function getQuestions(QuizInterface $quiz) {
@@ -195,7 +213,7 @@ class QuizController extends ControllerBase {
    *    Returns id of question.
    */
   public function getLatestAnsweredQuestionId(QuizInterface $quiz, AccountInterface $user) {
-    $answers = $this->getAnswers($quiz, $user);
+    $answers = $this->getAllAnswers($quiz, $user);
     /* @var $answer \Drupal\quiz\Entity\Answer */
     $answer = end($answers);
     return $answer->getQuestionId();
@@ -226,7 +244,6 @@ class QuizController extends ControllerBase {
     $link = '';
     $list = '';
     $markup = '';
-    //the quiz was started at least once
 
 
     $attempted = 0;
@@ -235,11 +252,13 @@ class QuizController extends ControllerBase {
     $percent = $quiz->get('percent')->value;
     $description = $quiz->get('description')->value;
 
-    kint($statuses);
+    // The quiz has been attempted at least once
     if(!empty($statuses)) {
       $status = array_pop($statuses);
       $statuses[] = $status;
       /* @var $status \Drupal\quiz\Entity\UserQuizStatus */
+
+      // If the last attempt is finished
       if ($status->isFinished()) {
         $score = $status->getScore();
         $maxScore = $status->getMaxScore();
@@ -254,11 +273,12 @@ class QuizController extends ControllerBase {
           $link .= '<p>You failed this quiz with '. round($score/$maxScore, 2) * 100 .'%.</p>';
 
         $list = $this->getResultsTable($status, $this->currentUser());
-        kint($link);
         $url = Url::fromRoute('entity.quiz.take_quiz', ['quiz' => $quiz->id()]);
         $href = Link::fromTextAndUrl('Retake Quiz', $url)->toRenderable();
         $link .= render($href);
       }
+
+      // If the last attempt is still ongoing
       else {
         $url = Url::fromRoute('entity.quiz.take_quiz', ['quiz' => $quiz->id()]);
         $href = Link::fromTextAndUrl('Continue Quiz', $url)->toRenderable();
@@ -266,23 +286,20 @@ class QuizController extends ControllerBase {
         $link .= render($href);
       }
     }
-    //the quiz was never attempted
+
+    // If the quiz was never attempted
     else {
       $url = Url::fromRoute('entity.quiz.take_quiz', ['quiz' => $quiz->id()]);
-      $link = Link::fromTextAndUrl('Take Quiz', $url)->toRenderable();
-      $link = render($link);
+      $href = Link::fromTextAndUrl('Take Quiz', $url)->toRenderable();
+      $link = render($href);
     }
-
 
     $markup .= SafeMarkup::format('<p>@description</p>',['@description' => $description]);
     $markup .= SafeMarkup::format('<p>Number of questions: @questions<br>',['@questions' => $questions]);
     $markup .= SafeMarkup::format('Pass rate: @percent%<br>',['@percent' => $percent]);
     $markup .= SafeMarkup::format('Attempted @times times</p>',['@times' => count($statuses)]);
-    kint(count($statuses));
 
     $markup .= $link;
-    //$list = "";
-
 
     return array(
       '#theme' => 'quiz_list_results',
@@ -392,7 +409,6 @@ class QuizController extends ControllerBase {
 
     $rows = array();
     $counter = 1;
-    kint($counter);
     $answers = $this->getAnswers($state, $user);
 
     foreach ($answers as $answer) {
@@ -547,7 +563,7 @@ class QuizController extends ControllerBase {
     if($user == NULL) {
       $user = $this->currentUser();
     }
-    $answers = $this->getAnswers($quiz, $user);
+    $answers = $this->getAllAnswers($quiz, $user);
     $counter = 0;
     foreach ($answers as $answer) {
       /* @var $answer \Drupal\quiz\Entity\Answer */
@@ -598,7 +614,6 @@ class QuizController extends ControllerBase {
 
     $quizStatus = UserQuizStatus::create(array());
     $quizStatus->setQuiz($quiz);
-    kint($quizStatus);
     $quizStatus->save();
     return array('#markup' => 'It works!</br>Entity ID: ' . $quizStatus->id());
   }
