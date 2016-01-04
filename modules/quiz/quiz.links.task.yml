@@ -53,6 +53,11 @@ entity.quiz.canonical:
   base_route: entity.quiz.canonical
   title: 'View'
 
+entity.quiz.canonical_admin:
+  route_name: entity.quiz.canonical_admin
+  base_route: entity.quiz.canonical
+  title: 'List'
+
 entity.quiz.edit_form:
   route_name: entity.quiz.edit_form
   base_route: entity.quiz.canonical

@@ -6,6 +6,7 @@
  */
 
 use Drupal\Core\Routing\RouteMatchInterface;
+use Drupal\Core\Url;
 
 /**
  * Implements hook_help().
@@ -50,4 +51,56 @@ function quiz_theme() {
   );
 
   return $theme;
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function quiz_uninstall() {
+
+}
+
+/**
+ * Implements hook_toolbar().
+ */
+function quiz_toolbar() {
+  $links['add_quiz'] = array(
+    'title' => t('Add Quiz'),
+    'url' => Url::fromRoute('entity.quiz.add_form_simple'),
+    'options' => array(
+      'title' => t('Add Quiz'),
+    ),
+  );
+
+  $links['list_quiz'] = array(
+    'title' => t('List Quizzes'),
+    'url' => Url::fromRoute('entity.quiz.collection'),
+    'options' => array(
+      'title' => t('List Quizzes'),
+    ),
+  );
+
+  $items['quiz'] = array(
+    '#type' => 'toolbar_item',
+    'tab' => array(
+      '#type' => 'link',
+      '#title' => t('Quiz'),
+      '#url' => Url::fromRoute('<front>'),
+      '#attributes' => array(
+        'title' => t('Quizzes'),
+      ),
+    ),
+    'tray' => array(
+      '#heading' => t('Quiz'),
+      'shortcuts' => array(
+        '#theme' => 'links__toolbar_example',
+        '#links' => $links,
+        '#attributes' => array(
+          'class' => array('toolbar-menu'),
+        ),
+      ),
+    )
+  );
+
+  return $items;
 }

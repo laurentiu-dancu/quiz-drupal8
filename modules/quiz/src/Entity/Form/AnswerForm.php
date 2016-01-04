@@ -22,6 +22,9 @@ class AnswerForm extends ContentEntityForm {
    */
   public function buildForm(array $form, FormStateInterface $form_state) {
     /* @var $entity \Drupal\quiz\Entity\Answer */
+
+
+
     $form = parent::buildForm($form, $form_state);
     $entity = $this->entity;
     $question = $entity->getQuestion();
@@ -65,6 +68,18 @@ class AnswerForm extends ContentEntityForm {
       '#title' => $entity->getQuestion()->get('question')->value,
       '#weight' => -5
     );
+
+    // Only display a timer if the quiz is timed.
+    if($quiz->get('time')->value > 0) {
+      $form['timer'] = array(
+        '#markup' => '<div id="js-timer"></div>',
+        '#weight' => -9
+      );
+
+      $form['#attached']['library'][] = 'quiz/quiz.timer';
+      $form['#attached']['drupalSettings']['quiz']['endtime'] = $quiz->get('time')->value + $status->get('started')->value - time();
+    }
+
     return $form;
   }
 

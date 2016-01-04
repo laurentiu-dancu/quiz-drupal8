@@ -110,7 +110,7 @@ class QuizController extends ControllerBase {
       foreach ($questions as $question) {
         /* @var $question \Drupal\quiz\Entity\Question */
         if ($status->getLastQuestionId() == NULL || $next) {
-          kint($status->getLastQuestionId());
+          //kint($status->getLastQuestionId());
           $nextQuestion = $question;
           break;
         }
@@ -140,7 +140,7 @@ class QuizController extends ControllerBase {
           $status->setCurrentQuestion();
           $status->save();
         }
-        return $this->redirect('entity.quiz.canonical_user', [
+        return $this->redirect('entity.quiz.canonical', [
           'quiz' => $quiz->id(),
         ]);
       }

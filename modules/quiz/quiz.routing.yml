@@ -244,7 +244,7 @@ entity.question_type.delete_form:
 
 # _controller: '\Drupal\quiz\Controller\QuizController::listQuestions'
 # Quiz routing definition
-entity.quiz.canonical:
+entity.quiz.canonical_admin:
   path: '/admin/quiz/{quiz}'
   defaults:
     _controller: '\Drupal\quiz\Controller\QuizController::listQuestions'
@@ -254,7 +254,7 @@ entity.quiz.canonical:
   options:
     _admin_route: TRUE
 
-entity.quiz.canonical_user:
+entity.quiz.canonical:
   path: '/quiz/{quiz}'
   defaults:
     _controller: 'Drupal\quiz\Controller\QuizController::userDisplayQuiz'
@@ -284,6 +284,16 @@ entity.quiz.add_page:
 
 entity.quiz.add_form:
   path: '/admin/quiz/add/{quiz_type}'
+  defaults:
+    _controller: '\Drupal\quiz\Controller\QuizController::add'
+    _title: 'Add Quiz'
+  requirements:
+    _permission: 'add quiz entities'
+  options:
+    _admin_route: TRUE
+
+entity.quiz.add_form_simple:
+  path: '/admin/quiz/add'
   defaults:
     _controller: '\Drupal\quiz\Controller\QuizController::add'
     _title: 'Add Quiz'
@@ -469,10 +479,10 @@ entity.user_quiz_status.add_code:
   options:
     _admin_route: TRUE
 
-entity.quiz.canonical_user_redux:
-  path: '/quiz/{quiz}/redux'
-  defaults:
-    _controller: 'Drupal\quiz\Controller\QuizController::userDisplayQuizRedux'
-    _title_callback: 'Drupal\quiz\Controller\QuizController::userDisplayQuizTitle'
-  requirements:
-    _entity_access: 'quiz.view'
+#entity.quiz.canonical_user_redux:
+#  path: '/quiz/{quiz}/redux'
+#  defaults:
+#    _controller: 'Drupal\quiz\Controller\QuizController::userDisplayQuizRedux'
+#    _title_callback: 'Drupal\quiz\Controller\QuizController::userDisplayQuizTitle'
+#  requirements:
+#    _entity_access: 'quiz.view'

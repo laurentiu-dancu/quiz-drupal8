@@ -48,7 +48,7 @@ use Drupal\user\UserInterface;
  *   },
  *   bundle_entity_type = "quiz_type",
  *   links = {
- *     "canonical" = "/admin/quiz/{quiz}",
+ *     "canonical" = "/quiz/{quiz}",
  *     "edit-form" = "/admin/quiz/{quiz}/edit",
  *     "delete-form" = "/admin/quiz/{quiz}/delete"
  *   },
@@ -236,6 +236,21 @@ class Quiz extends ContentEntityBase implements QuizInterface {
       ->setDescription(t('The pass rate for this quiz in percents.'))
       ->setDefaultValue(50)
       ->addPropertyConstraints('value', ['Range' => ['min' => 0, 'max' => 100]])
+      ->setDisplayOptions('view', array(
+        'label' => 'above',
+        'type' => 'string',
+        'weight' => 1,
+      ))
+      ->setDisplayOptions('form', array(
+        'type' => 'string_textfield',
+        'weight' => 1,
+      ));
+
+    $fields['time'] = BaseFieldDefinition::create('integer')
+      ->setLabel(t('Quiz time (seconds)'))
+      ->setDescription(t('The number of seconds the user has to complete the quiz after starting it.'))
+      ->setDefaultValue(0)
+      ->addPropertyConstraints('value', ['Range' => ['min' => 0]])
       ->setDisplayOptions('view', array(
         'label' => 'above',
         'type' => 'string',
