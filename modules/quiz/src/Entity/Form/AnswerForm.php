@@ -50,6 +50,7 @@ class AnswerForm extends ContentEntityForm {
     $count = $question->getUserQuizStateAnswersCount($this->currentUser(), $status);
     if($count) {
       $status->setLastQuestion($question);
+
       $status->save();
       return $this->redirect('entity.quiz.canonical_user', [
         'quiz' => $question->getQuiz()->id(),
@@ -70,14 +71,34 @@ class AnswerForm extends ContentEntityForm {
     );
 
     // Only display a timer if the quiz is timed.
+    //kint($quiz->get('time')->value);
     if($quiz->get('time')->value > 0) {
       $form['timer'] = array(
         '#markup' => '<div id="js-timer"></div>',
         '#weight' => -9
       );
 
+      $timeLeft = $quiz->get('time')->value + $status->get('started')->value - time();
+
+      //kint($timeLeft);
+      // If we're out of time we mark the status as finished, no matter if some questions were left unanswered.
+      if($timeLeft < 0) {
+        $status->setFinished(time());
+
+
+        $status->setScore($status->evaluate());
+        $status->setMaxScore($quiz->getMaxScore());
+        $status->setPercent($quiz->get('percent')->value);
+        $status->setFinished(time());
+        $status->setQuestionsCount(count($quiz->getQuestions()));
+        $status->save();
+
+        //TODO: redirect to evaluation. And make status save a separate function in controller.
+        return $this->redirect('entity.quiz.canonical', ['quiz' => $quiz->id()]);
+      }
+
       $form['#attached']['library'][] = 'quiz/quiz.timer';
-      $form['#attached']['drupalSettings']['quiz']['endtime'] = $quiz->get('time')->value + $status->get('started')->value - time();
+      $form['#attached']['drupalSettings']['quiz']['endtime'] = $timeLeft - 1;
     }
 
     return $form;
@@ -107,10 +128,7 @@ class AnswerForm extends ContentEntityForm {
     $status->setLastQuestion($question);
     $entity->setUserQuizStatus($status);
     $entity->save();
-    $answers = $status->getTotalAnswerCount();
-    if($answers = NULL)
-      $answers = 0;
-    $status->setTotalAnswerCount($answers + 1);
+    $status->setAnswerCount($status->getAnswerCount() + 1);
     $status->save();
     /* @var $quiz \Drupal\quiz\Entity\Quiz */
     $form_state->setRedirect('entity.quiz.take_quiz', [

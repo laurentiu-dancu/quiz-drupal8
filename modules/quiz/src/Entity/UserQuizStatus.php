@@ -12,6 +12,7 @@ use Drupal\Core\Field\BaseFieldDefinition;
 use Drupal\Core\Entity\ContentEntityBase;
 use Drupal\Core\Entity\EntityChangedTrait;
 use Drupal\Core\Entity\EntityTypeInterface;
+use Drupal\Core\Session\AccountInterface;
 use Drupal\Core\TypedData\Plugin\DataType\Timestamp;
 use Drupal\quiz\QuestionInterface;
 use Drupal\quiz\QuizInterface;
@@ -145,7 +146,7 @@ class UserQuizStatus extends ContentEntityBase implements UserQuizStatusInterfac
   /**
    * {@inheritdoc}
    */
-  public function setCorrectAnswerCount($correctAnswerCount) {
+  public function setAnswerCount($correctAnswerCount) {
     $this->set('correct_answers', $correctAnswerCount);
     return $this;
   }
@@ -153,14 +154,14 @@ class UserQuizStatus extends ContentEntityBase implements UserQuizStatusInterfac
   /**
    * {@inheritdoc}
    */
-  public function getCorrectAnswerCount() {
+  public function getAnswerCount() {
     return $this->get('correct_answers')->value;
   }
 
   /**
    * {@inheritdoc}
    */
-  public function setTotalAnswerCount($totalAnswerCount) {
+  public function setQuestionsCount($totalAnswerCount) {
     $this->set('total_answers', $totalAnswerCount);
     return $this;
   }
@@ -168,7 +169,7 @@ class UserQuizStatus extends ContentEntityBase implements UserQuizStatusInterfac
   /**
    * {@inheritdoc}
    */
-  public function getTotalAnswerCount() {
+  public function getQuestionsCount() {
     return $this->get('total_answers')->value;
   }
 
@@ -241,6 +242,65 @@ class UserQuizStatus extends ContentEntityBase implements UserQuizStatusInterfac
 
   public function isFinished() {
     return $this->get('finished')->value;
+  }
+
+  /**
+   * @param \Drupal\quiz\UserQuizStatusInterface $state
+   * @param \Drupal\Core\Session\AccountInterface $user
+   * @return array
+   */
+  public function getAnswers(UserQuizStatusInterface $state, AccountInterface $user) {
+    $answerStorage = static::entityTypeManager()->getStorage('answer');
+    $query = $answerStorage->getQuery();
+    $aids = $query
+      ->Condition('user_id', $user->id())
+      ->Condition('user_quiz_status', $state->id())
+      ->execute();
+    $answers = $answerStorage->loadMultiple($aids);
+    return $answers;
+  }
+
+  public function evaluate() {
+    $score = 0;
+    $answers = $this->getAnswers($this, $this->getOwner());
+    foreach ($answers as $answer) {
+      /* @var $answer \Drupal\quiz\Entity\Answer */
+      $question = $answer->getQuestion();
+      /* @var $question \Drupal\quiz\Entity\Question */
+
+      //calculating score for a text question
+      if ($question->getType() == 'text_question' && $answer->getType() == 'text_answer') {
+        if ($answer->get('field_text_answer')->value == $question->get('field_text_answer')->value) {
+          $score += $question->get('score')->value;
+        }
+      }
+
+      //calculating score for a true or false question
+      if ($question->getType() == $answer->getType() && $answer->getType() == 'true_or_false') {
+        if ($answer->get('field_true_or_false')->value == $question->get('field_true_or_false')->value) {
+          $score += $question->get('score')->value;
+        }
+      }
+
+      //calculating score for a multiple choice question
+      if ($question->getType() == 'multiple_choice_question' && $answer->getType() == 'multiple_choice_answer') {
+        $questions = array();
+        $fail = 0;
+        foreach ($question->get('field_multiple_answer') as $delta => $field) {
+          $questions[$delta] = $field->value;
+        }
+        foreach ($answer->get('field_multiple_answer') as $delta => $field) {
+          if ($field->value != $questions[$delta]) {
+            $fail = 1;
+            break;
+          }
+        }
+        if(!$fail) {
+          $score += $question->get('score')->value;
+        }
+      }
+    }
+    return $score;
   }
 
   /**

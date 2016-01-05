@@ -102,6 +102,7 @@ class QuizController extends ControllerBase {
         $status = UserQuizStatus::create(array());
         $status->setQuiz($quiz);
         $status->setFinished(0);
+        $status->setAnswerCount(0);
         $status->save();
       }
 
@@ -132,10 +133,11 @@ class QuizController extends ControllerBase {
       else {
         //kint($status->isFinished());
         if($status->isFinished() == 0) {
-          $status->setScore($this->evaluate($status, $this->currentUser()));
+          $status->setScore($status->evaluate());
           $status->setMaxScore($this->getMaxScore($quiz));
-          $status->setCorrectAnswerCount(0);
+          $status->setAnswerCount(0);
           $status->setPercent($quiz->get('percent')->value);
+          $status->setQuestionsCount(count($quiz->getQuestions()));
           $status->setFinished(time());
           $status->setCurrentQuestion();
           $status->save();
@@ -244,7 +246,6 @@ class QuizController extends ControllerBase {
     $link = '';
     $list = '';
     $markup = '';
-
 
     $attempted = 0;
     $finished = 0;
@@ -474,7 +475,7 @@ class QuizController extends ControllerBase {
       '#header' => $header,
       '#title' => "what title",
       '#rows' => $rows,
-      '#empty' => $this->t('You haven\'t answered to any question yet.'),
+      '#empty' => $this->t('You haven\'t answered to any question.'),
       '#cache' => [
         'contexts' => $answerStorage->getEntityType()->getListCacheContexts(),
         'tags' => $answerStorage->getEntityType()->getListCacheTags(),

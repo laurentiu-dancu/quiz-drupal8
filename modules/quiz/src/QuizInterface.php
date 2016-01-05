@@ -34,4 +34,6 @@ interface QuizInterface extends ContentEntityInterface, EntityChangedInterface, 
   public function getStatuses(AccountInterface $user);
 
   public function getActiveStatus(AccountInterface $user);
+
+  public function getMaxScore();
 }

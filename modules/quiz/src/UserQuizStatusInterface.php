@@ -66,26 +66,26 @@ interface UserQuizStatusInterface extends ContentEntityInterface, EntityChangedI
    * @param $correctAnswerCount
    * @return mixed
    */
-  public function setCorrectAnswerCount($correctAnswerCount);
+  public function setAnswerCount($correctAnswerCount);
 
 
   /**
    * @return mixed
    */
-  public function getCorrectAnswerCount();
+  public function getAnswerCount();
 
 
   /**
    * @param $totalAnswerCount
    * @return mixed
    */
-  public function setTotalAnswerCount($totalAnswerCount);
+  public function setQuestionsCount($totalAnswerCount);
 
 
   /**
    * @return mixed
    */
-  public function getTotalAnswerCount();
+  public function getQuestionsCount();
 
 
   /**
@@ -146,4 +146,6 @@ interface UserQuizStatusInterface extends ContentEntityInterface, EntityChangedI
    * @return mixed
    */
   public function getCurrentQuestionId();
+
+  public function evaluate();
 }

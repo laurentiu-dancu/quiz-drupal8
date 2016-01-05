@@ -145,6 +145,16 @@ class Quiz extends ContentEntityBase implements QuizInterface {
     return NULL;
   }
 
+  public function getMaxScore() {
+    $questions = $this->getQuestions();
+    $score = 0;
+    foreach ($questions as $question) {
+      /* @var $question \Drupal\quiz\Entity\Question */
+      $score += $question->get('score')->value;
+    }
+    return $score;
+  }
+
   /**
    * {@inheritdoc}
    */

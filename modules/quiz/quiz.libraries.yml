@@ -1,0 +1,8 @@
+quiz.timer:
+  js:
+    # weight is used as example attribute, but please avoid it and instead use
+    # dependencies for order loading.
+    js/timer.js: { endtime: 6 }
+  dependencies:
+    - core/jquery
+    - core/drupalSettings
