@@ -1,3 +1,12 @@
+quiz.tabs:
+  css:
+    theme:
+      css/tabs.css: {}
+  js:
+    js/tabs.js: {}
+  dependencies:
+    - core/jquery.ui.tabs
+
 quiz.timer:
   js:
     # weight is used as example attribute, but please avoid it and instead use
@@ -6,3 +15,4 @@ quiz.timer:
   dependencies:
     - core/jquery
     - core/drupalSettings
+

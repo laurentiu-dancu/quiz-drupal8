@@ -251,6 +251,7 @@ entity.quiz.canonical_admin:
     _title: 'Quiz'
   requirements:
     _entity_access: 'quiz.view'
+    _permission: 'add question entities'
   options:
     _admin_route: TRUE
 
