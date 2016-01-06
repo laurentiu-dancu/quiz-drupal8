@@ -64,7 +64,7 @@ class QuizForm extends ContentEntityForm {
           '%label' => $entity->label(),
         ]));
     }
-    $form_state->setRedirect('entity.quiz.edit_form', ['quiz' => $entity->id()]);
+    $form_state->setRedirect('entity.quiz.canonical_admin', ['quiz' => $entity->id()]);
   }
 
 }

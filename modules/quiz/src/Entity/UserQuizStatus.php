@@ -147,7 +147,7 @@ class UserQuizStatus extends ContentEntityBase implements UserQuizStatusInterfac
    * {@inheritdoc}
    */
   public function setAnswerCount($correctAnswerCount) {
-    $this->set('correct_answers', $correctAnswerCount);
+    $this->set('given_answers', $correctAnswerCount);
     return $this;
   }
 
@@ -155,14 +155,14 @@ class UserQuizStatus extends ContentEntityBase implements UserQuizStatusInterfac
    * {@inheritdoc}
    */
   public function getAnswerCount() {
-    return $this->get('correct_answers')->value;
+    return $this->get('given_answers')->value;
   }
 
   /**
    * {@inheritdoc}
    */
   public function setQuestionsCount($totalAnswerCount) {
-    $this->set('total_answers', $totalAnswerCount);
+    $this->set('total_questions', $totalAnswerCount);
     return $this;
   }
 
@@ -170,7 +170,7 @@ class UserQuizStatus extends ContentEntityBase implements UserQuizStatusInterfac
    * {@inheritdoc}
    */
   public function getQuestionsCount() {
-    return $this->get('total_answers')->value;
+    return $this->get('total_questions')->value;
   }
 
   /**
@@ -260,6 +260,9 @@ class UserQuizStatus extends ContentEntityBase implements UserQuizStatusInterfac
     return $answers;
   }
 
+  /**
+   * {@inheritdoc}
+   */
   public function evaluate() {
     $score = 0;
     $answers = $this->getAnswers($this, $this->getOwner());
@@ -339,12 +342,12 @@ class UserQuizStatus extends ContentEntityBase implements UserQuizStatusInterfac
       ->setLabel(t('Maximum Score'))
       ->setDescription(t('The maximum score that can be obtained for this quiz.'));
 
-    $fields['correct_answers'] = BaseFieldDefinition::create('integer')
-      ->setLabel(t('Correct answer count'))
+    $fields['given_answers'] = BaseFieldDefinition::create('integer')
+      ->setLabel(t('Given answer count'))
       ->setDescription(t('How many correct answers were given.'));
 
-    $fields['total_answers'] = BaseFieldDefinition::create('integer')
-      ->setLabel(t('Total answer count'))
+    $fields['total_questions'] = BaseFieldDefinition::create('integer')
+      ->setLabel(t('Total questions count'))
       ->setDescription(t('How many answers were in the quiz.'));
 
     $fields['percent'] = BaseFieldDefinition::create('integer')

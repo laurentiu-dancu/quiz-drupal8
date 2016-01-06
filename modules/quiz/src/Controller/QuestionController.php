@@ -68,7 +68,6 @@ class QuestionController extends ControllerBase {
       $result = $builder->render();
 
     }
-
     return array(
       '#theme' => 'question',
       '#content' => $result,
@@ -96,6 +95,7 @@ class QuestionController extends ControllerBase {
       $builder->load();
       $result = $builder->render();
     }
+
     return array(
       '#theme' => 'question',
       '#content' => $result,

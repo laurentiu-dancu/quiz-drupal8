@@ -95,8 +95,23 @@ class QuizController extends ControllerBase {
   public function takeQuiz(QuizInterface $quiz) {
     // Only attempt quiz if it has questions.
 
+    $attemptCount = $quiz->get('attempts')->value;
+
+    if($attemptCount > 0) {
+      $statuses = $quiz->getStatuses($this->currentUser());
+      if (count($statuses) >= $attemptCount) {
+        $status = $quiz->getActiveStatus($this->currentUser());
+        if($status == NULL) {
+          drupal_set_message($this->t('Maximum attempts for this quiz reached.'), 'warning');
+          return $this->redirect('entity.quiz.canonical', [
+            'quiz' => $quiz->id(),
+          ]);
+        }
+      }
+    }
+
     $questions = $quiz->getQuestions();
-    if (count($questions)) {
+    if (count($questions) != 0) {
 
       $status = $quiz->getActiveStatus($this->currentUser());
       //while(1);
@@ -135,11 +150,12 @@ class QuizController extends ControllerBase {
       // Quiz completed case.
       else {
         //kint($status->isFinished());
+
         if($status->isFinished() == 0) {
           $status->setScore($status->evaluate());
           $status->setMaxScore($this->getMaxScore($quiz));
-          $status->setAnswerCount(0);
           $status->setPercent($quiz->get('percent')->value);
+
           $status->setQuestionsCount(count($quiz->getQuestions()));
           $status->setFinished(time());
           $status->setCurrentQuestion();
@@ -152,7 +168,7 @@ class QuizController extends ControllerBase {
     }
 
     drupal_set_message($this->t('This quiz has no questions.'), 'warning');
-    return $this->redirect('entity.quiz.canonical_user', [
+    return $this->redirect('entity.quiz.canonical', [
       'quiz' => $quiz->id(),
     ]);
   }
@@ -243,8 +259,7 @@ class QuizController extends ControllerBase {
   }
 
   /**
-   * When I wrote this, only God and I understood what I was doing
-   * Now, God only knows
+   * Makes a rendable array containing the page with quiz status.
    *
    * @param \Drupal\quiz\QuizInterface $quiz
    * @return array
@@ -252,18 +267,17 @@ class QuizController extends ControllerBase {
   public function userDisplayQuiz(QuizInterface $quiz) {
     $statuses = $quiz->getStatuses($this->currentUser());
 
-    $link = '';
-    $list = '';
-    $markup = '';
+    $build = array();
 
-    $attempted = 0;
-    $finished = 0;
+    $link = '';
     $questions = count($this->getQuestionIds($quiz));
     $percent = $quiz->get('percent')->value;
     $timeLimit = $quiz->get('time')->value;
     if($timeLimit == 0 || $timeLimit == NULL)
-      $timeLimit = "No";
+      $timeLimit = 0;
     $description = $quiz->get('description')->value;
+    $attemptLimit = $quiz->get('attempts')->value;
+    $attemptTimes = count($statuses);
 
     $attempts = array();
     // The quiz has been attempted at least once
@@ -271,19 +285,28 @@ class QuizController extends ControllerBase {
       $status = array_pop($statuses);
       $statuses[] = $status;
       // If the quiz was attempted and finished
-      if ($status->isFinished()) {
+      if ($status->isFinished() && ($attemptLimit == 0 || $attemptLimit > $attemptTimes)) {
         $url = Url::fromRoute('entity.quiz.take_quiz', ['quiz' => $quiz->id()]);
         $href = Link::fromTextAndUrl('Retake Quiz', $url)->toRenderable();
-        $link .= render($href);
+        $link = $href;
       }
       // If the last attempt is not yet finished
-      else {
+      elseif ($attemptLimit == 0 || $attemptLimit > $attemptTimes) {
         $url = Url::fromRoute('entity.quiz.take_quiz', ['quiz' => $quiz->id()]);
         $href = Link::fromTextAndUrl('Continue Quiz', $url)->toRenderable();
-        $link .= "<p>This quiz is already active.</p>";
-        $link .= render($href);
+        $link = $href;
       }
       /* @var $status \Drupal\quiz\Entity\UserQuizStatus */
+
+      $c = 0;
+      $attempts['#prefix'] = "<div id='tabs'>";
+      $attempts['#suffix'] = "</div>";
+
+      $attempts['tabs']['#prefix'] = "<ul class='tabs'>";
+      $attempts['tabs']['#suffix'] = "</ul>";
+
+      $attempts['attempts']['#prefix'] = "<div class='attempts'>";
+      $attempts['attempts']['#suffix'] = "</div>";
 
       foreach ($statuses as $status) {
         // Only generate reports for finished quizzes
@@ -294,20 +317,38 @@ class QuizController extends ControllerBase {
           $timeTaken = $status->getFinished() - $status->getStarted();
           $attempted = $finished = count($statuses);
 
-          $attempt = $this->t('<p>Time taken: @time<br>', ['@time' => gmdate("H:i:s", $timeTaken)]);
-          $attempt .= $this->t('You scored @score out of @max points</p>', [
+          $attempt['status']['time']['#markup'] = $this->t('Time taken: @time',
+            ['@time' => gmdate("H:i:s", $timeTaken)]);
+          $attempt['status']['time']['#suffix'] = '<br>';
+          $attempt['status']['score']['#markup'] = $this->t('You scored @score out of @max points', [
             '@score' => $score,
             '@max' => $maxScore
           ]);
+          $attempt['status']['score']['#suffix'] = '<br>';
           if ($score / $maxScore >= $percent / 100) {
-            $attempt .= $this->t('<p>You passed this quiz with @percents%!</p>', ['@percents' => round($score / $maxScore, 2) * 100]);
+            $attempt['status']['pass']['#markup'] = $this->t('You passed this quiz with @percents%!',
+              ['@percents' => round($score / $maxScore, 2) * 100]);
           }
           else {
-            $attempt .= $this->t('<p>You failed this quiz with @percents%.</p>', ['@percents' => round($score / $maxScore, 2) * 100]);
+            $attempt['status']['pass']['#markup'] = $this->t('You failed this quiz with @percents%.',
+              ['@percents' => round($score / $maxScore, 2) * 100]);
           }
-          $attempt .= render($this->getResultsTable($status, $this->currentUser()));
-          $attempts[] = $attempt;
+          $attempt['status']['pass']['#prefix'] = '<br>';
+          $attempt['status']['pass']['#suffix'] = '<br>';
+          $attempt['status']['#prefix'] = '<div>';
+          $attempt['status']['#suffix'] = '</div>';
+          $attempt['table'] = $this->getResultsTable($status, $this->currentUser());
+
+          $attempts['tabs']['#weight'] = -1;
+          $attempts['tabs'][++$c]['#markup'] = $this->t("Attempt @id",['@id' => $c]);
+          $attempts['tabs'][$c]['#prefix'] = "<li><a href='#tabs-" . $c . "'>";
+          $attempts['tabs'][$c]['#suffix'] = '</a></li>';
+
+          $attempts['attempts'][$c] = $attempt;
+          $attempts['attempts'][$c]['#prefix'] = $this->t("<div id='tabs-@id'>",['@id' => $c]);
+          $attempts['attempts'][$c]['#suffix'] = "</div>";
         }
+
       }
     }
 
@@ -315,148 +356,40 @@ class QuizController extends ControllerBase {
     else {
       $url = Url::fromRoute('entity.quiz.take_quiz', ['quiz' => $quiz->id()]);
       $href = Link::fromTextAndUrl('Take Quiz', $url)->toRenderable();
-      $link = render($href);
+      $link = $href;
     }
 
-    $markup .= $this->t('<p>@description</p>',['@description' => $description]);
-    $markup .= $this->t('<p>Number of questions: @questions<br>',['@questions' => $questions]);
-    $markup .= $this->t('Pass rate: @percent%<br>',['@percent' => $percent]);
-    $markup .= $this->t('Time limit: @time<br>',['@time' => gmdate("H:i:s", $timeLimit)]);
-    $markup .= $this->t('Attempted @times times</p>',['@times' => count($statuses)]);
-    $markup .= $link;
+    $build['details']['description']['#markup'] = $this->t('@description',['@description' => $description]);
+    $build['details']['description']['#prefix'] = '<p>';
+    $build['details']['description']['#suffix'] = '</p>';
 
+    $build['details']['status']['#prefix'] = '<p>';
+    $build['details']['status']['#suffix'] = '</p>';
 
-    $markup .= "<div id='tabs'>";
-    $markup .= "<ul class='tabs'>";
-    foreach($attempts as $id => $attempt) {
-      $markup .= $this->t("<li><a href='#tabs-@id'>Attempt @id</a></li>",['@id' => $id + 1]);
-    }
-    $markup .= "</ul>";
+    $build['details']['status']['questions']['#markup'] = $this->t('Number of questions: @questions',['@questions' => $questions]);
+    $build['details']['status']['questions']['#suffix'] = '<br>';
 
-    foreach($attempts as $id => $attempt) {
-      $markup .= $this->t("<div id='tabs-@id'>",['@id' => $id + 1]);
-      $markup .= $attempt;
-      $markup .= "</div>";
-    }
-    $markup .= "</div>";
+    $build['details']['status']['percent']['#markup'] = $this->t('Pass rate: @percent%',['@percent' => $percent]);
+    $build['details']['status']['percent']['#suffix'] = '<br>';
 
+    $build['details']['status']['time']['#markup'] = $this->t('Time limit: @time',['@time' => $timeLimit > 0 ? gmdate("H:i:s", $timeLimit) : 'No']);
+    $build['details']['status']['time']['#suffix'] = '<br>';
 
-    $markup .= $list;
+    $build['details']['status']['allowed']['#markup'] = $this->t('Attempts allowed: @times',['@times' => $attemptLimit > 0 ? $attemptLimit : 'Unlimited']);
+    $build['details']['status']['allowed']['#suffix'] = '<br>';
 
-    /*
-    return array(
-      '#type' => 'markup',
-      '#markup' => $markup
-    );
-    */
+    $build['details']['status']['attempts']['#markup'] = $this->t('Attempted @times times.',['@times' => $attemptTimes]);
 
-    $build['myelement'] = array(
-      '#theme' => 'quiz_list_results',
-      '#markup' => $markup,
-    );
+    $build['details']['link'] = $link;
+    $build['details']['link']['#prefix'] = '<p>';
+    $build['details']['link']['#suffix'] = '</p>';
 
-    $build['myelement']['#attached']['library'][] = 'quiz/quiz.tabs';
-    //$build['myelement']['#attached']['library'][] = 'js_example/js_example.accordion';
-    //kint($build);
+    $build['results'] = $attempts;
+
+    $build['results']['#attached']['library'][] = 'quiz/quiz.tabs';
     return $build;
-
-    return array(
-      '#theme' => 'quiz_list_results',
-      '#markup' => $markup,
-    );
-
   }
-  /**
-   * Displays the status for a quiz for a normal user
-   *
-   * @param \Drupal\quiz\QuizInterface $quiz
-   * @return array
-   *  Returns a rendable array with a markup
-   */
-  /*
-  public function userDisplayQuizRedux(QuizInterface $quiz) {
-    $answeredQuestions = count($this->getAnswers($quiz, $this->currentUser()));
-    $nrOfQuestions = count($this->getQuestionIds($quiz));
 
-    //kint($nrOfQuestions);
-    $statuses = $quiz->getStatuses($this->currentUser());
-
-    if(!empty($statuses)) {
-      kint($statuses);
-      $status = array_pop($statuses);
-      /* @var $status \Drupal\quiz\Entity\UserQuizStatus
-      $answeredQuestions = $status->getTotalAnswerCount();
-      $percent = $status->getPercent();
-    }
-    else {
-      $answeredQuestions = 0;
-    }
-
-
-    kint($answeredQuestions);
-
-
-    $started = "no";
-    $completed = "no";
-    $percent = $quiz->get('percent')->value;
-    $description = $quiz->get('description')->value;
-    $linkGenerator = $this->getLinkGenerator();
-
-
-
-    kint($percent);
-
-    $list = array();
-    if($answeredQuestions == 0 || $answeredQuestions == NULL) {
-      $takeQuizUrl = Url::fromRoute('entity.quiz.take_quiz', ['quiz' => $quiz->id()]);
-      $link = $linkGenerator->generate('Take Quiz', $takeQuizUrl);
-    }
-    elseif ($answeredQuestions < $nrOfQuestions) {
-      $list = $this->getResultsTable($quiz,$this->currentUser());
-      $started = "yes";
-      $latestQuestion = $this->getLatestAnsweredQuestionId($quiz, $this->currentUser());
-      $takeQuizUrl = Url::fromRoute('entity.quiz.take_quiz',
-        ['quiz' => $quiz->id()]);
-      $link = $linkGenerator->generate('Continue Quiz',$takeQuizUrl);
-    }
-    else {
-      $list = $this->getResultsTable($quiz,$this->currentUser());
-      $completed = "yes";
-      $started = "yes";
-
-      $score = $this->evaluate($quiz, $this->currentUser());
-      $maxScore = $this->getMaxScore($quiz);
-
-      if($score/$maxScore >= $percent/100)
-        $link = '<p>You passed this quiz with '. round($score/$maxScore, 2) * 100 .'%!</p>';
-      else
-        $link = '<p>You failed this quiz with '. round($score/$maxScore, 2) * 100 .'%.</p>';
-
-      $link .= "<p>Your score is " .
-        $score . " out of " .
-        $maxScore . ' possible.</p>';
-    }
-
-    $markup = '<p>' . $description . '</p>';
-
-    $markup .= '<p>Number of questions: ' . $nrOfQuestions . "</br>" .
-      'Pass Percent: ' . $percent . '</br>' .
-      'Started: ' . $started . '</br>' .
-      'Completed: ' . $completed . '</p>' .
-      $link;
-
-    return array(
-      '#theme' => 'quiz_list_results',
-      '#results' => $list,
-      '#markup' => $markup,
-    );
-  }
-*/
-  /**
-   * @param \Drupal\quiz\UserQuizStatusInterface $state
-   * @param \Drupal\Core\Session\AccountInterface $user
-   * @return mixed
-   */
   public function getResultsTable(UserQuizStatusInterface $state, AccountInterface $user) {
     $answerStorage = static::entityTypeManager()->getStorage('answer');
 
@@ -467,16 +400,16 @@ class QuizController extends ControllerBase {
     $header['received'] = 'Your Answer';
 
     $rows = array();
-    $counter = 1;
     $answers = $this->getAnswers($state, $user);
 
+    $c = 1;
     foreach ($answers as $answer) {
       /* @var $answer \Drupal\quiz\Entity\Answer */
 
       $question = $answer->getQuestion();
       /* @var $question \Drupal\quiz\Entity\Question */
 
-      $rows[$answer->id()]['id'] = $counter;
+      $rows[$answer->id()]['id'] = $c++;
       $rows[$answer->id()]['question'] = $answer->getQuestion()->get('question')->value;
       $rows[$answer->id()]['expected'] = '';
       $rows[$answer->id()]['received'] = '';
@@ -525,13 +458,11 @@ class QuizController extends ControllerBase {
           $rows[$answer->id()]['received'] = 'True';
         }
       }
-      $counter++;
     }
 
     $build['table'] = array(
       '#type' => 'table',
       '#header' => $header,
-      '#title' => "what title",
       '#rows' => $rows,
       '#empty' => $this->t('You didn\'t answer any question.'),
       '#cache' => [
@@ -542,6 +473,8 @@ class QuizController extends ControllerBase {
 
     return $build;
   }
+
+
   /**
    * Gets the maximum achievable score for a quiz.
    *
@@ -563,6 +496,7 @@ class QuizController extends ControllerBase {
    * @param \Drupal\quiz\UserQuizStatusInterface $state
    * @param \Drupal\Core\Session\AccountInterface $user
    * @return int
+   *
    * @deprecated Use $state->evaluate() instead.
    */
   public function evaluate(UserQuizStatusInterface $state, AccountInterface $user) {
@@ -645,6 +579,8 @@ class QuizController extends ControllerBase {
    * @param \Drupal\Core\Session\AccountInterface $user
    * @return \Drupal\Core\Entity\EntityInterface[]
    *  Returns array of answers
+   *
+   * @deprecated Use $question->getAnswers() instead.
    */
   public function getAnswersToQuestion(QuestionInterface $question, AccountInterface $user) {
     $answerStorage = static::entityTypeManager()->getStorage('answer');
@@ -664,6 +600,8 @@ class QuizController extends ControllerBase {
    * @param \Drupal\Core\Session\AccountInterface|NULL $user
    * @return int
    *  Returns number of answers. 0 means the question is not answered.
+   *
+   * @deprecated Use $question->getAnswers() instead.
    */
   public function isAnswered(QuestionInterface $question, AccountInterface $user) {
     $answers = $this->getAnswersToQuestion($question, $user);

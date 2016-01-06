@@ -147,5 +147,10 @@ interface UserQuizStatusInterface extends ContentEntityInterface, EntityChangedI
    */
   public function getCurrentQuestionId();
 
+  /**
+   * Calculates the score for this quiz instance based on answers to its questions.
+   *
+   * @return int score
+   */
   public function evaluate();
 }

@@ -112,6 +112,9 @@ class Quiz extends ContentEntityBase implements QuizInterface {
     return $this->bundle();
   }
 
+  /**
+   * {@inheritdoc}
+   */
   public function getQuestions() {
     $questionStorage = static::entityTypeManager()->getStorage('question');
     $query = $questionStorage->getQuery();
@@ -121,6 +124,9 @@ class Quiz extends ContentEntityBase implements QuizInterface {
     return $questionStorage->loadMultiple($aids);
   }
 
+  /**
+   * {@inheritdoc}
+   */
   public function getStatuses(AccountInterface $user) {
     $statusStorage = static::entityTypeManager()->getStorage('user_quiz_status');
     $query = $statusStorage->getQuery();
@@ -131,6 +137,9 @@ class Quiz extends ContentEntityBase implements QuizInterface {
     return $statusStorage->loadMultiple($qidList);
   }
 
+  /**
+   * {@inheritdoc}
+   */
   public function getActiveStatus(AccountInterface $user) {
     $statusStorage = static::entityTypeManager()->getStorage('user_quiz_status');
     $query = $statusStorage->getQuery();
@@ -145,6 +154,9 @@ class Quiz extends ContentEntityBase implements QuizInterface {
     return NULL;
   }
 
+  /**
+   * {@inheritdoc}
+   */
   public function getMaxScore() {
     $questions = $this->getQuestions();
     $score = 0;
@@ -258,7 +270,22 @@ class Quiz extends ContentEntityBase implements QuizInterface {
 
     $fields['time'] = BaseFieldDefinition::create('integer')
       ->setLabel(t('Quiz time (seconds)'))
-      ->setDescription(t('The number of seconds the user has to complete the quiz after starting it.'))
+      ->setDescription(t('The number of seconds the user has to complete the quiz after starting it. Set to 0 for no time limit.'))
+      ->setDefaultValue(0)
+      ->addPropertyConstraints('value', ['Range' => ['min' => 0]])
+      ->setDisplayOptions('view', array(
+        'label' => 'above',
+        'type' => 'string',
+        'weight' => 1,
+      ))
+      ->setDisplayOptions('form', array(
+        'type' => 'string_textfield',
+        'weight' => 1,
+      ));
+
+    $fields['attempts'] = BaseFieldDefinition::create('integer')
+      ->setLabel(t('Number of attempts allowed'))
+      ->setDescription(t('The number a time an user is allowed to attempt this quiz. Set to 0 for unlimited attempts.'))
       ->setDefaultValue(0)
       ->addPropertyConstraints('value', ['Range' => ['min' => 0]])
       ->setDisplayOptions('view', array(

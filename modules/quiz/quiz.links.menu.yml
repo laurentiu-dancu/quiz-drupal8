@@ -38,7 +38,7 @@ entity.question_type.collection:
 
 # Quiz menu items definition
 entity.quiz.collection:
-  title: 'Quiz list'
+  title: 'All Quizzes'
   route_name: entity.quiz.collection
   description: 'List Quiz entities'
 
