@@ -28,22 +28,12 @@ entity.answer.add_page:
   options:
     _admin_route: TRUE
 
-entity.answer.add_form:
-  path: '/admin/answer/add/{answer_type}/{question}'
-  defaults:
-    _controller: '\Drupal\quiz\Controller\AnswerController::add'
-    _title: 'Add Answer'
-  requirements:
-    _permission: 'add answer entities'
-  options:
-    _admin_route: TRUE
-
 entity.answer.add_answer:
 #  path: '/admin/answer/add/{question}'
   path: '/quiz/answer/add/{question}'
   defaults:
-    _controller: '\Drupal\quiz\Controller\AnswerController::answerQuestion'
-    _title_callback: '\Drupal\quiz\Controller\AnswerController::answerQuestionTitle'
+    _controller: '\Drupal\quiz\Controller\QuizController::addAnswer'
+    _title_callback: '\Drupal\quiz\Controller\QuizController::addAnswerTitle'
   requirements:
     _permission: 'add answer entities'
 #  options:
@@ -143,18 +133,19 @@ entity.question.collection:
   options:
     _admin_route: TRUE
 
-entity.question.add_page:
-  path: '/admin/question/add/'
-  defaults:
-    _controller: '\Drupal\quiz\Controller\QuestionController::addPage'
-    _title: 'Add Question'
-  requirements:
-    _permission: 'add question entities'
+#entity.question.add_page:
+#  path: '/admin/question/add/'
+#  defaults:
+#    _controller: '\Drupal\quiz\Controller\QuestionController::addPage'
+#    _title: 'Add Question'
+#  requirements:
+#    _permission: 'add question entities'
+#
 
 entity.question.add_page_quiz:
   path: '/admin/question/add/{quiz}'
   defaults:
-    _controller: '\Drupal\quiz\Controller\QuestionController::addPageQuiz'
+    _controller: '\Drupal\quiz\Controller\QuizController::pickQuestionType'
     _title: 'Add Question'
   requirements:
     _permission: 'add quiz entities'
@@ -162,7 +153,7 @@ entity.question.add_page_quiz:
 entity.question.add_form:
   path: '/admin/question/add/{quiz}/{question_type}'
   defaults:
-    _controller: '\Drupal\quiz\Controller\QuestionController::add'
+    _controller: '\Drupal\quiz\Controller\QuizController::addQuestion'
     _title: 'Add Question'
   requirements:
     _permission: 'add question entities'
@@ -276,7 +267,7 @@ entity.quiz.collection:
 entity.quiz.add_page:
   path: '/admin/quiz/add'
   defaults:
-    _controller: '\Drupal\quiz\Controller\QuizController::add'
+    _controller: '\Drupal\quiz\Controller\QuizController::addQuiz'
     _title: 'Add Quiz'
   requirements:
     _permission: 'add quiz entities'
@@ -286,7 +277,7 @@ entity.quiz.add_page:
 entity.quiz.add_form:
   path: '/admin/quiz/add/{quiz_type}'
   defaults:
-    _controller: '\Drupal\quiz\Controller\QuizController::add'
+    _controller: '\Drupal\quiz\Controller\QuizController::addQuiz'
     _title: 'Add Quiz'
   requirements:
     _permission: 'add quiz entities'
@@ -296,7 +287,7 @@ entity.quiz.add_form:
 entity.quiz.add_form_simple:
   path: '/admin/quiz/add'
   defaults:
-    _controller: '\Drupal\quiz\Controller\QuizController::add'
+    _controller: '\Drupal\quiz\Controller\QuizController::addQuiz'
     _title: 'Add Quiz'
   requirements:
     _permission: 'add quiz entities'
@@ -470,15 +461,6 @@ user_quiz_status.settings:
   options:
     _admin_route: TRUE
 
-entity.user_quiz_status.add_code:
-  path: '/admin/user_quiz/{quiz}'
-  defaults:
-    _controller: '\Drupal\quiz\Controller\QuizController::newUserQuizStatus'
-    _title: 'Quiz'
-  requirements:
-    _entity_access: 'quiz.view'
-  options:
-    _admin_route: TRUE
 
 #entity.quiz.canonical_user_redux:
 #  path: '/quiz/{quiz}/redux'

@@ -7,25 +7,19 @@
 
 namespace Drupal\quiz\Controller;
 
-use DateTime;
-use Drupal\Component\Utility\SafeMarkup;
 use Drupal\Core\Controller\ControllerBase;
-use Drupal\Core\Entity\EntityType;
-use Drupal\Core\Routing\UrlGeneratorTrait;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
-use Drupal\Core\StringTranslation\TranslatableMarkup;
-use Drupal\Core\TypedData\Plugin\DataType\Timestamp;
 use Drupal\Core\Url;
-use Drupal\quiz\AnswerListBuilder;
 use Drupal\quiz\Entity\UserQuizStatus;
 use Drupal\quiz\QuestionInterface;
 use Drupal\quiz\QuestionListBuilder;
+use Drupal\quiz\QuestionTypeInterface;
+use Drupal\quiz\QuestionTypeListBuilder;
 use Drupal\quiz\QuizInterface;
 use Drupal\quiz\QuizTypeInterface;
 use Drupal\Core\Link;
 use Drupal\quiz\UserQuizStatusInterface;
-use Drupal\user\UserInterface;
 
 /**
  * Class QuizController.
@@ -33,6 +27,77 @@ use Drupal\user\UserInterface;
  * @package Drupal\quiz\Controller
  */
 class QuizController extends ControllerBase {
+
+  /**
+   * Adds an answer to a question.
+   *
+   * @param \Drupal\quiz\QuestionInterface $question
+   * @return array
+   *  Returns form for adding an answer.
+   */
+  public function addAnswer(QuestionInterface $question) {
+    $answer = static::entityTypeManager()->getStorage('answer')->create(array(
+      'type' => $question->get('answer_type')->target_id,
+      'question' => $question->id(),
+    ));
+
+    $form = $this->entityFormBuilder()->getForm($answer);
+
+    return $form;
+  }
+
+  /**
+   * Builds a title for a question in format question x of n.
+   *
+   * @param \Drupal\quiz\QuestionInterface $question
+   * @return string
+   *  Returns title string.
+   */
+  public function addAnswerTitle(QuestionInterface $question) {
+    $storage = static::entityTypeManager()->getStorage('question');
+    $quizId = $question->getQuizId();
+    $query = $storage->getQuery();
+    $qids = $query
+      ->Condition('quiz', $quizId)
+      ->execute();
+    $current = 0;
+    foreach ($qids as $qid) {
+      $current++;
+      if($qid == $question->id())
+        break;
+    }
+    return 'Question ' . $current . ' of ' . count($qids);
+  }
+
+  /**
+   * Adds a new question.
+   *
+   * @param $quiz
+   *    The quiz for which to add the question.
+   * @param \Drupal\quiz\QuestionTypeInterface $question_type
+   *    The type of question.
+   * @return array
+   *    New question type form.
+   */
+  public function addQuestion($quiz, QuestionTypeInterface $question_type) {
+    $answer_type = NULL;
+    if($question_type->id() == 'true_or_false')
+      $answer_type = 'true_or_false';
+    if($question_type->id() == 'text_question')
+      $answer_type = 'text_answer';
+    if($question_type->id() == 'multiple_choice_question')
+      $answer_type = 'multiple_choice_answer';
+    $question = static::entityTypeManager()->getStorage('question')->create(array(
+      'type' => $question_type->id(),
+      'answer_type' => $answer_type,
+      'quiz' => $quiz,
+    ));
+
+    $form = $this->entityFormBuilder()->getForm($question);
+
+    return $form;
+  }
+
   use StringTranslationTrait;
   /**
    * Adds a new quiz. If no quiz type is provided,
@@ -42,7 +107,7 @@ class QuizController extends ControllerBase {
    * @return array
    *  Returns a new quiz form.
    */
-  public function add(QuizTypeInterface $quiz_type = NULL) {
+  public function addQuiz(QuizTypeInterface $quiz_type = NULL) {
     if ($quiz_type == NULL) {
       $quiz = static::entityTypeManager()->getStorage('quiz')->create(array(
         'type' => 'basic_quiz',
@@ -70,18 +135,27 @@ class QuizController extends ControllerBase {
     $qids = $query
       ->Condition('quiz', $quiz->id())
       ->execute();
-    $result = array();
-    if (count($qids) != 0) {
-      reset($qids);
-      $type = $storage->load(current($qids))->getEntityType();
-      $builder = new QuestionListBuilder($type, $storage);
-      $builder->setIds($qids);
-      $result = $builder->render();
-    }
-    return array(
-      '#theme' => 'quiz_list_questions',
-      '#questions' => $result,
-    );
+    $builder = new QuestionListBuilder($storage->getEntityType(), $storage);
+    $builder->setIds($qids);
+
+    $renderArray = $builder->render();
+    return $renderArray;
+  }
+
+  /**
+   * Lists the question types for a new question in a quiz.
+   *
+   * @param \Drupal\quiz\QuizInterface $quiz
+   * @return array
+   *  Rendable array
+   */
+  public function pickQuestionType(QuizInterface $quiz) {
+    $storage = static::entityTypeManager()->getStorage('question_type');
+    $builder = new QuestionTypeListBuilder($storage->getEntityType(), $storage);
+    $builder->setQuizId($quiz->id());
+    $builder->load();
+    $result = $builder->render();
+    return $result;
   }
 
   /**
@@ -114,7 +188,7 @@ class QuizController extends ControllerBase {
     if (count($questions) != 0) {
 
       $status = $quiz->getActiveStatus($this->currentUser());
-      //while(1);
+
       // If no open quiz session is found, create one.
       if($status == NULL) {
         $status = UserQuizStatus::create(array());
@@ -126,10 +200,10 @@ class QuizController extends ControllerBase {
 
       $next = 0;
       $nextQuestion = NULL;
+      // Take questions in order mechanism. Extend here to implement random order.
       foreach ($questions as $question) {
         /* @var $question \Drupal\quiz\Entity\Question */
         if ($status->getLastQuestionId() == NULL || $next) {
-          //kint($status->getLastQuestionId());
           $nextQuestion = $question;
           break;
         }
@@ -148,12 +222,9 @@ class QuizController extends ControllerBase {
         ]);
       }
       // Quiz completed case.
-      else {
-        //kint($status->isFinished());
-
-        if($status->isFinished() == 0) {
+      elseif($status->isFinished() == 0) {
           $status->setScore($status->evaluate());
-          $status->setMaxScore($this->getMaxScore($quiz));
+          $status->setMaxScore($quiz->getMaxScore());
           $status->setPercent($quiz->get('percent')->value);
 
           $status->setQuestionsCount(count($quiz->getQuestions()));
@@ -165,79 +236,11 @@ class QuizController extends ControllerBase {
           'quiz' => $quiz->id(),
         ]);
       }
-    }
 
     drupal_set_message($this->t('This quiz has no questions.'), 'warning');
     return $this->redirect('entity.quiz.canonical', [
       'quiz' => $quiz->id(),
     ]);
-  }
-
-  /**
-   * @param \Drupal\quiz\UserQuizStatusInterface $state
-   * @param \Drupal\Core\Session\AccountInterface $user
-   * @return array
-   */
-  public function getAnswers(UserQuizStatusInterface $state, AccountInterface $user) {
-    $answerStorage = static::entityTypeManager()->getStorage('answer');
-    $query = $answerStorage->getQuery();
-    $aids = $query
-      ->Condition('user_id', $user->id())
-      ->Condition('user_quiz_status', $state->id())
-      ->execute();
-    $answers = $answerStorage->loadMultiple($aids);
-
-
-
-    /*
-    foreach ($answers as $answer) {
-      /* @var $answer \Drupal\quiz\Entity\Answer
-      if ($answer->getUserQuizStatusId() == $state->id()) {
-        $answerArray[] = $answer;
-      }
-    }
-  */
-    return $answers;
-  }
-
-  public function getAllAnswers(QuizInterface $quiz, AccountInterface $user) {
-    $answerStorage = static::entityTypeManager()->getStorage('answer');
-    $query = $answerStorage->getQuery();
-    $aids = $query
-      ->Condition('user_id', $user->id())
-      ->execute();
-    $answers = $answerStorage->loadMultiple($aids);
-    $answerArray = array();
-    foreach ($answers as $answer) {
-      /* @var $answer \Drupal\quiz\Entity\Answer */
-      if ($answer->getQuestion()->getQuiz()->id() == $quiz->id()) {
-        $answerArray[] = $answer;
-      }
-    }
-    return $answerArray;
-  }
-
-  public function getQuestions(QuizInterface $quiz) {
-    $questionStorage = static::entityTypeManager()->getStorage('question');
-    $query = $questionStorage->getQuery();
-    $qids = $query->Condition('quiz', $quiz->id())->execute();
-    $questions = $questionStorage->loadMultiple($qids);
-    return $questions;
-  }
-
-  /**
-   * Gets the ID of the lasted responded question in a quiz for an user
-   *
-   * @param \Drupal\quiz\QuizInterface $quiz
-   * @param \Drupal\Core\Session\AccountInterface $user
-   * @return int
-   *    Returns id of question.
-   */
-  public function getLatestAnsweredQuestionId(QuizInterface $quiz, AccountInterface $user) {
-    $answers = $this->getAllAnswers($quiz, $user);
-    /* @var $answer \Drupal\quiz\Entity\Answer */
-    $answer = end($answers);
-    return $answer->getQuestionId();
   }
 
   /**
@@ -247,12 +250,7 @@ class QuizController extends ControllerBase {
    * @return array
    *    Returns IDs of questions for a quiz
    */
-  public function getQuestionIds(QuizInterface $quiz) {
-    $storage = static::entityTypeManager()->getStorage('question');
-    $query = $storage->getQuery();
-    $qids = $query->Condition('quiz', $quiz->id())->execute();
-    return $qids;
-  }
+
 
   public function userDisplayQuizTitle(QuizInterface $quiz) {
     return $quiz->get('name')->value;
@@ -269,8 +267,12 @@ class QuizController extends ControllerBase {
 
     $build = array();
 
+    $renderer = \Drupal::service('renderer');
+
+    $config = \Drupal::config('system.site');
+
     $link = '';
-    $questions = count($this->getQuestionIds($quiz));
+    $questions = count($quiz->getQuestionCount());
     $percent = $quiz->get('percent')->value;
     $timeLimit = $quiz->get('time')->value;
     if($timeLimit == 0 || $timeLimit == NULL)
@@ -337,7 +339,7 @@ class QuizController extends ControllerBase {
           $attempt['status']['pass']['#suffix'] = '<br>';
           $attempt['status']['#prefix'] = '<div>';
           $attempt['status']['#suffix'] = '</div>';
-          $attempt['table'] = $this->getResultsTable($status, $this->currentUser());
+          $attempt['table'] = $this->getResultsTable($status);
 
           $attempts['tabs']['#weight'] = -1;
           $attempts['tabs'][++$c]['#markup'] = $this->t("Attempt @id",['@id' => $c]);
@@ -348,7 +350,6 @@ class QuizController extends ControllerBase {
           $attempts['attempts'][$c]['#prefix'] = $this->t("<div id='tabs-@id'>",['@id' => $c]);
           $attempts['attempts'][$c]['#suffix'] = "</div>";
         }
-
       }
     }
 
@@ -387,10 +388,20 @@ class QuizController extends ControllerBase {
     $build['results'] = $attempts;
 
     $build['results']['#attached']['library'][] = 'quiz/quiz.tabs';
+    $build['#cache'] = ['contexts' => ['user']];
+    $renderer->addCacheableDependency($build, $config);
+    $renderer->addCacheableDependency($build, $this->currentUser());
     return $build;
   }
 
-  public function getResultsTable(UserQuizStatusInterface $state, AccountInterface $user) {
+  /**
+   * Builds the table of answers for a given quiz state.
+   *
+   * @param \Drupal\quiz\UserQuizStatusInterface $state
+   * @return array()
+   *    Returns a rendable array.
+   */
+  public function getResultsTable(UserQuizStatusInterface $state) {
     $answerStorage = static::entityTypeManager()->getStorage('answer');
 
     $header = array();
@@ -400,7 +411,7 @@ class QuizController extends ControllerBase {
     $header['received'] = 'Your Answer';
 
     $rows = array();
-    $answers = $this->getAnswers($state, $user);
+    $answers = $state->getAnswers();
 
     $c = 1;
     foreach ($answers as $answer) {
@@ -450,7 +461,6 @@ class QuizController extends ControllerBase {
         $rows[$answer->id()]['received'] = $answer->get('field_text_answer')->value;
 
       if($answer->getType() == 'true_or_false') {
-        //kint($answer->get('field_true_or_false')->delta);
         if($answer->get('field_true_or_false')->value == 0) {
           $rows[$answer->id()]['received'] = 'False';
         }
@@ -475,74 +485,22 @@ class QuizController extends ControllerBase {
   }
 
 
-  /**
-   * Gets the maximum achievable score for a quiz.
-   *
-   * @param \Drupal\quiz\QuizInterface $quiz
-   * @return int
-   *  Returns score.
-   */
-  public function getMaxScore(QuizInterface $quiz) {
-    $questions = $this->getQuestions($quiz);
-    $score = 0;
-    foreach ($questions as $question) {
-      /* @var $question \Drupal\quiz\Entity\Question */
-      $score += $question->get('score')->value;
-    }
-    return $score;
-  }
-
-  /**
-   * @param \Drupal\quiz\UserQuizStatusInterface $state
-   * @param \Drupal\Core\Session\AccountInterface $user
-   * @return int
-   *
-   * @deprecated Use $state->evaluate() instead.
-   */
-  public function evaluate(UserQuizStatusInterface $state, AccountInterface $user) {
-    $score = 0;
-    $answers = $this->getAnswers($state, $user);
+  public function getAllAnswers(QuizInterface $quiz, AccountInterface $user) {
+    $answerStorage = static::entityTypeManager()->getStorage('answer');
+    $query = $answerStorage->getQuery();
+    $aids = $query
+      ->Condition('user_id', $user->id())
+      ->execute();
+    $answers = $answerStorage->loadMultiple($aids);
+    $answerArray = array();
     foreach ($answers as $answer) {
       /* @var $answer \Drupal\quiz\Entity\Answer */
-      $question = $answer->getQuestion();
-      /* @var $question \Drupal\quiz\Entity\Question */
-
-      //calculating score for a text question
-      if ($question->getType() == 'text_question' && $answer->getType() == 'text_answer') {
-        if ($answer->get('field_text_answer')->value == $question->get('field_text_answer')->value) {
-          $score += $question->get('score')->value;
-        }
-      }
-
-      //calculating score for a true or false question
-      if ($question->getType() == $answer->getType() && $answer->getType() == 'true_or_false') {
-        if ($answer->get('field_true_or_false')->value == $question->get('field_true_or_false')->value) {
-          $score += $question->get('score')->value;
-        }
-      }
-
-      //calculating score for a multiple choice question
-      if ($question->getType() == 'multiple_choice_question' && $answer->getType() == 'multiple_choice_answer') {
-        $questions = array();
-        $fail = 0;
-        foreach ($question->get('field_multiple_answer') as $delta => $field) {
-          $questions[$delta] = $field->value;
-        }
-        foreach ($answer->get('field_multiple_answer') as $delta => $field) {
-          if ($field->value != $questions[$delta]) {
-            $fail = 1;
-            break;
-          }
-        }
-        if(!$fail) {
-          $score += $question->get('score')->value;
-        }
+      if ($answer->getQuestion()->getQuiz()->id() == $quiz->id()) {
+        $answerArray[] = $answer;
       }
     }
-    return $score;
+    return $answerArray;
   }
-
-
 
   /**
    * Deletes all answers to a quiz for a user. If no user is specified
@@ -552,6 +510,8 @@ class QuizController extends ControllerBase {
    * @param \Drupal\Core\Session\AccountInterface|NULL $user
    * @return array
    *  Returns a redirect to the canonical quiz page.
+   *
+   * @TODO: Also delete states, not just answer entities.
    */
   public function resetQuiz(QuizInterface $quiz, AccountInterface $user = NULL) {
     if($user == NULL) {
@@ -571,49 +531,4 @@ class QuizController extends ControllerBase {
       'quiz' => $quiz->id(),
     ]);
   }
-
-  /**
-   * Gets all the answers of an user for a question.
-   *
-   * @param \Drupal\quiz\QuestionInterface $question
-   * @param \Drupal\Core\Session\AccountInterface $user
-   * @return \Drupal\Core\Entity\EntityInterface[]
-   *  Returns array of answers
-   *
-   * @deprecated Use $question->getAnswers() instead.
-   */
-  public function getAnswersToQuestion(QuestionInterface $question, AccountInterface $user) {
-    $answerStorage = static::entityTypeManager()->getStorage('answer');
-    $query = $answerStorage->getQuery();
-    $aids = $query
-      ->Condition('user_id', $user->id())
-      ->Condition('question', $question->id())
-      ->execute();
-    $answers = $answerStorage->loadMultiple($aids);
-    return $answers;
-  }
-
-  /**
-   * Gets the number of answers a question has for an user.
-   *
-   * @param \Drupal\quiz\QuestionInterface $question
-   * @param \Drupal\Core\Session\AccountInterface|NULL $user
-   * @return int
-   *  Returns number of answers. 0 means the question is not answered.
-   *
-   * @deprecated Use $question->getAnswers() instead.
-   */
-  public function isAnswered(QuestionInterface $question, AccountInterface $user) {
-    $answers = $this->getAnswersToQuestion($question, $user);
-    return count($answers);
-  }
-
-  public function newUserQuizStatus(QuizInterface $quiz) {
-
-    $quizStatus = UserQuizStatus::create(array());
-    $quizStatus->setQuiz($quiz);
-    $quizStatus->save();
-    return array('#markup' => 'It works!</br>Entity ID: ' . $quizStatus->id());
-  }
-
 }

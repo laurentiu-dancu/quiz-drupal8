@@ -127,13 +127,20 @@ class Quiz extends ContentEntityBase implements QuizInterface {
   /**
    * {@inheritdoc}
    */
-  public function getStatuses(AccountInterface $user) {
+  public function getStatuses(AccountInterface $user = NULL) {
     $statusStorage = static::entityTypeManager()->getStorage('user_quiz_status');
     $query = $statusStorage->getQuery();
-    $qidList = $query
-      ->condition('quiz', $this->id())
-      ->condition('user_id', $user->id())
-      ->execute();
+    if($user != NULL) {
+      $qidList = $query
+        ->condition('quiz', $this->id())
+        ->condition('user_id', $user->id())
+        ->execute();
+    }
+    else {
+      $qidList = $query
+        ->condition('quiz', $this->id())
+        ->execute();
+    }
     return $statusStorage->loadMultiple($qidList);
   }
 
@@ -165,6 +172,13 @@ class Quiz extends ContentEntityBase implements QuizInterface {
       $score += $question->get('score')->value;
     }
     return $score;
+  }
+
+  public function getQuestionCount() {
+    $storage = static::entityTypeManager()->getStorage('question');
+    $query = $storage->getQuery();
+    $qids = $query->Condition('quiz', $this->id())->execute();
+    return count($qids);
   }
 
   /**

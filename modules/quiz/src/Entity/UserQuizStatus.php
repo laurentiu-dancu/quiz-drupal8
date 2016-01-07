@@ -27,32 +27,12 @@ use Drupal\user\UserInterface;
  * @ContentEntityType(
  *   id = "user_quiz_status",
  *   label = @Translation("User quiz status"),
- *   handlers = {
- *     "view_builder" = "Drupal\Core\Entity\EntityViewBuilder",
- *     "list_builder" = "Drupal\quiz\UserQuizStatusListBuilder",
- *     "views_data" = "Drupal\quiz\Entity\UserQuizStatusViewsData",
- *
- *     "form" = {
- *       "default" = "Drupal\quiz\Entity\Form\UserQuizStatusForm",
- *       "add" = "Drupal\quiz\Entity\Form\UserQuizStatusForm",
- *       "edit" = "Drupal\quiz\Entity\Form\UserQuizStatusForm",
- *       "delete" = "Drupal\quiz\Entity\Form\UserQuizStatusDeleteForm",
- *     },
- *     "access" = "Drupal\quiz\UserQuizStatusAccessControlHandler",
- *   },
  *   base_table = "user_quiz_status",
- *   admin_permission = "administer UserQuizStatus entity",
  *   entity_keys = {
  *     "id" = "id",
  *     "label" = "name",
  *     "uuid" = "uuid"
  *   },
- *   links = {
- *     "canonical" = "/admin/user_quiz_status/{user_quiz_status}",
- *     "edit-form" = "/admin/user_quiz_status/{user_quiz_status}/edit",
- *     "delete-form" = "/admin/user_quiz_status/{user_quiz_status}/delete"
- *   },
- *   field_ui_base_route = "user_quiz_status.settings"
  * )
  */
 class UserQuizStatus extends ContentEntityBase implements UserQuizStatusInterface {
@@ -244,28 +224,13 @@ class UserQuizStatus extends ContentEntityBase implements UserQuizStatusInterfac
     return $this->get('finished')->value;
   }
 
-  /**
-   * @param \Drupal\quiz\UserQuizStatusInterface $state
-   * @param \Drupal\Core\Session\AccountInterface $user
-   * @return array
-   */
-  public function getAnswers(UserQuizStatusInterface $state, AccountInterface $user) {
-    $answerStorage = static::entityTypeManager()->getStorage('answer');
-    $query = $answerStorage->getQuery();
-    $aids = $query
-      ->Condition('user_id', $user->id())
-      ->Condition('user_quiz_status', $state->id())
-      ->execute();
-    $answers = $answerStorage->loadMultiple($aids);
-    return $answers;
-  }
 
   /**
    * {@inheritdoc}
    */
   public function evaluate() {
     $score = 0;
-    $answers = $this->getAnswers($this, $this->getOwner());
+    $answers = $this->getAnswers();
     foreach ($answers as $answer) {
       /* @var $answer \Drupal\quiz\Entity\Answer */
       $question = $answer->getQuestion();
@@ -304,6 +269,21 @@ class UserQuizStatus extends ContentEntityBase implements UserQuizStatusInterfac
       }
     }
     return $score;
+  }
+
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getAnswers() {
+    $answerStorage = static::entityTypeManager()->getStorage('answer');
+    $query = $answerStorage->getQuery();
+    $aids = $query
+      ->Condition('user_id', $this->getOwnerId())
+      ->Condition('user_quiz_status', $this->id())
+      ->execute();
+    $answers = $answerStorage->loadMultiple($aids);
+    return $answers;
   }
 
   /**

@@ -67,7 +67,7 @@ class QuestionForm extends ContentEntityForm {
         ]));
     }
     if ($entity instanceof QuestionInterface) {
-      $form_state->setRedirect('entity.quiz.canonical', ['quiz' => $entity->get('quiz')->target_id]);
+      $form_state->setRedirect('entity.quiz.canonical_admin', ['quiz' => $entity->get('quiz')->target_id]);
     }
     else {
       $form_state->setRedirect('entity.quiz.canonical', ['quiz' => \Drupal::request()->attributes->get('quiz')]);

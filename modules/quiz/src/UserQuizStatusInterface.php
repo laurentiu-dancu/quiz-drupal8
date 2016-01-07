@@ -153,4 +153,11 @@ interface UserQuizStatusInterface extends ContentEntityInterface, EntityChangedI
    * @return int score
    */
   public function evaluate();
+
+  /**
+   * @return mixed
+   */
+  public function getAnswers();
+
+
 }
