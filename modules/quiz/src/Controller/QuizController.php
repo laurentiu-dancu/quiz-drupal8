@@ -512,6 +512,7 @@ class QuizController extends ControllerBase {
    *  Returns a redirect to the canonical quiz page.
    *
    * @TODO: Also delete states, not just answer entities.
+   * @deprecated Just don't use it, it doesn't work with statuses
    */
   public function resetQuiz(QuizInterface $quiz, AccountInterface $user = NULL) {
     if($user == NULL) {
