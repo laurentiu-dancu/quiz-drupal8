@@ -272,7 +272,7 @@ class QuizController extends ControllerBase {
     $config = \Drupal::config('system.site');
 
     $link = '';
-    $questions = count($quiz->getQuestionCount());
+    $questions = $quiz->getQuestionCount();
     $percent = $quiz->get('percent')->value;
     $timeLimit = $quiz->get('time')->value;
     if($timeLimit == 0 || $timeLimit == NULL)
