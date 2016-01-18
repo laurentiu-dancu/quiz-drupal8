@@ -30,10 +30,15 @@ entity.answer.add_page:
 
 entity.answer.add_answer:
 #  path: '/admin/answer/add/{question}'
-  path: '/quiz/answer/add/{question}'
+  path: '/quiz/answer/add/{state}'
   defaults:
     _controller: '\Drupal\quiz\Controller\QuizController::addAnswer'
+    #_title: 'Add Answer'
     _title_callback: '\Drupal\quiz\Controller\QuizController::addAnswerTitle'
+  options:
+    parameters:
+      state:
+        type: entity:user_quiz_status
   requirements:
     _permission: 'add answer entities'
 #  options:
@@ -249,7 +254,9 @@ entity.quiz.canonical_admin:
 entity.quiz.canonical:
   path: '/quiz/{quiz}'
   defaults:
-    _controller: 'Drupal\quiz\Controller\QuizController::userDisplayQuiz'
+    _entity_view: 'quiz'
+    #_title: 'Quiz'
+    #_controller: 'Drupal\quiz\Controller\QuizController::userDisplayQuiz'
     _title_callback: 'Drupal\quiz\Controller\QuizController::userDisplayQuizTitle'
   requirements:
     _entity_access: 'quiz.view'
@@ -461,6 +468,19 @@ user_quiz_status.settings:
   options:
     _admin_route: TRUE
 
+entity.quiz.add_question:
+  path: '/quiz/{quiz}/add-question/{question}'
+  defaults:
+    _controller: 'Drupal\quiz\Controller\QuizController::bindQuestion'
+  requirements:
+    _entity_access: 'quiz.view'
+
+entity.quiz.remove_question:
+  path: '/quiz/{quiz}/remove-question/{question}'
+  defaults:
+    _controller: 'Drupal\quiz\Controller\QuizController::unbindQuestion'
+  requirements:
+    _entity_access: 'quiz.view'
 
 #entity.quiz.canonical_user_redux:
 #  path: '/quiz/{quiz}/redux'
@@ -469,3 +489,4 @@ user_quiz_status.settings:
 #    _title_callback: 'Drupal\quiz\Controller\QuizController::userDisplayQuizTitle'
 #  requirements:
 #    _entity_access: 'quiz.view'
+# QuizHasQuestion routing definition

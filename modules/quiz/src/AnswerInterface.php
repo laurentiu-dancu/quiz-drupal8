@@ -45,7 +45,15 @@ interface AnswerInterface extends ContentEntityInterface, EntityChangedInterface
    */
   public function getQuestionId();
 
-  public function setUserQuizStatus(UserQuizStatusInterface $status);
+  public function setState(UserQuizStatusInterface $status);
 
-  public function getUserQuizStatusId();
+  public function getStateId();
+
+  public function getState();
+
+  public function isText();
+
+  public function isTrueFalse();
+
+  public function isMultipleChoice();
 }

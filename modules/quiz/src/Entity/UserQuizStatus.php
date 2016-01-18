@@ -220,6 +220,10 @@ class UserQuizStatus extends ContentEntityBase implements UserQuizStatusInterfac
     return $this->get('current_question')->target_id;
   }
 
+  public function getCurrentQuestion() {
+    return $this->get('current_question')->entity;
+  }
+
   public function isFinished() {
     return $this->get('finished')->value;
   }

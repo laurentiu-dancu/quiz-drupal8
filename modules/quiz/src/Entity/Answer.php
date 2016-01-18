@@ -134,13 +134,27 @@ class Answer extends ContentEntityBase implements AnswerInterface {
     return $this->bundle();
   }
 
-  public function setUserQuizStatus(UserQuizStatusInterface $status) {
+  public function setState(UserQuizStatusInterface $status) {
     $this->set('user_quiz_status', $status);
     return $this;
   }
 
-  public function getUserQuizStatusId() {
+  public function getStateId() {
     return $this->get('user_quiz_status')->target_id;
+  }
+
+  public function getState() {
+    return $this->get('user_quiz_status')->entity;
+  }
+
+  public function isText() {
+    return $this->bundle() == 'text_answer';
+  }
+  public function isTrueFalse() {
+    return $this->bundle() == 'true_or_false';
+  }
+  public function isMultipleChoice() {
+    return $this->bundle() == 'multiple_choice_answer';
   }
 
   /**

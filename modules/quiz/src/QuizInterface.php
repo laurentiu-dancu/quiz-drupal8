@@ -38,4 +38,14 @@ interface QuizInterface extends ContentEntityInterface, EntityChangedInterface, 
   public function getMaxScore();
 
   public function getQuestionCount();
+
+  /**
+   * Gets all the questions for this Quiz.
+   *
+   * @return mixed
+   */
+  public function getAllQuestions();
+
+  public function removeQuestion(QuestionInterface $question);
+
 }

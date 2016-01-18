@@ -23,28 +23,26 @@ class AnswerForm extends ContentEntityForm {
   public function buildForm(array $form, FormStateInterface $form_state) {
     /* @var $entity \Drupal\quiz\Entity\Answer */
 
-
-
     $form = parent::buildForm($form, $form_state);
     $entity = $this->entity;
-    $question = $entity->getQuestion();
+
     /* @var $question \Drupal\quiz\Entity\Question */
 
     $question = $entity->getQuestion();
     /* @var $question \Drupal\quiz\Entity\Question */
-    $quiz = $question->getQuiz();
 
-    $status = $quiz->getActiveStatus($this->currentUser());
     /* @var $status \Drupal\quiz\Entity\UserQuizStatus */
+    $status = $entity->getState();
+
 
     if ($status == NULL)
       return $this->redirect('entity.quiz.canonical_user', [
-        'quiz' => $question->getQuiz()->id(),
+        'quiz' => $status->getQuiz()->id(),
       ]);
 
     if($status->getCurrentQuestionId() != $question->id())
       return $this->redirect('entity.quiz.canonical_user', [
-        'quiz' => $question->getQuiz()->id(),
+        'quiz' => $status->getQuiz()->id(),
       ]);
 
     $count = $question->getUserQuizStateAnswersCount($this->currentUser(), $status);
@@ -53,7 +51,7 @@ class AnswerForm extends ContentEntityForm {
 
       $status->save();
       return $this->redirect('entity.quiz.canonical_user', [
-        'quiz' => $question->getQuiz()->id(),
+        'quiz' => $status->getQuiz()->id(),
       ]);
     }
 
@@ -72,13 +70,13 @@ class AnswerForm extends ContentEntityForm {
 
     // Only display a timer if the quiz is timed.
     //kint($quiz->get('time')->value);
-    if($quiz->get('time')->value > 0) {
+    if($status->getQuiz()->get('time')->value > 0) {
       $form['timer'] = array(
         '#markup' => '<div id="js-timer"></div>',
         '#weight' => -9
       );
 
-      $timeLeft = $quiz->get('time')->value + $status->get('started')->value - time();
+      $timeLeft = $status->getQuiz()->get('time')->value + $status->get('started')->value - time();
 
       //kint($timeLeft);
       // If we're out of time we mark the status as finished, no matter if some questions were left unanswered.
@@ -87,14 +85,14 @@ class AnswerForm extends ContentEntityForm {
 
 
         $status->setScore($status->evaluate());
-        $status->setMaxScore($quiz->getMaxScore());
-        $status->setPercent($quiz->get('percent')->value);
+        $status->setMaxScore($status->getQuiz()->getMaxScore());
+        $status->setPercent($status->getQuiz()->get('percent')->value);
         $status->setFinished(time());
-        $status->setQuestionsCount(count($quiz->getQuestions()));
+        $status->setQuestionsCount(count($status->getQuiz()->getQuestions()));
         $status->save();
 
         //TODO: redirect to evaluation. And make status save a separate function in controller.
-        return $this->redirect('entity.quiz.canonical', ['quiz' => $quiz->id()]);
+        return $this->redirect('entity.quiz.canonical', ['quiz' => $status->getQuiz()->id()]);
       }
 
       $form['#attached']['library'][] = 'quiz/quiz.timer';
@@ -121,12 +119,13 @@ class AnswerForm extends ContentEntityForm {
     $entity = $this->entity;
     /* @var $entity \Drupal\quiz\Entity\Answer */
     $question = $entity->getQuestion();
+    $status = $entity->getState();
     /* @var $question \Drupal\quiz\Entity\Question */
-    $quiz = $question->getQuiz();
+    $quiz = $status->getQuiz();
     $status = $quiz->getActiveStatus($this->currentUser());
     /* @var $status \Drupal\quiz\Entity\UserQuizStatus */
     $status->setLastQuestion($question);
-    $entity->setUserQuizStatus($status);
+    $entity->setState($status);
     $entity->save();
     $status->setAnswerCount($status->getAnswerCount() + 1);
     $status->save();

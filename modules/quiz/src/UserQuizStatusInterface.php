@@ -159,5 +159,6 @@ interface UserQuizStatusInterface extends ContentEntityInterface, EntityChangedI
    */
   public function getAnswers();
 
+  public function getCurrentQuestion();
 
 }

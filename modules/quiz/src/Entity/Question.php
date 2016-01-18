@@ -118,20 +118,6 @@ class Question extends ContentEntityBase implements QuestionInterface {
   /**
    * {@inheritdoc}
    */
-  public function getQuiz() {
-    return $this->get('quiz')->entity;
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function getQuizId() {
-    return $this->get('quiz')->target_id;
-  }
-
-  /**
-   * {@inheritdoc}
-   */
   public function getUserAnswersCount(AccountInterface $account) {
     $answerStorage = static::entityTypeManager()->getStorage('answer');
     $query = $answerStorage->getQuery();
@@ -178,22 +164,6 @@ class Question extends ContentEntityBase implements QuestionInterface {
       ->setLabel(t('UUID'))
       ->setDescription(t('The UUID of the Question entity.'))
       ->setReadOnly(TRUE);
-
-    $fields['quiz'] = BaseFieldDefinition::create('entity_reference')
-      ->setLabel(t('Quiz'))
-      ->setDescription(t('The quiz of this question.'))
-      ->setSetting('target_type', 'quiz')
-      ->setDisplayConfigurable('view', TRUE)
-      ->setDisplayOptions('view', array(
-        'label' => 'above',
-        'type' => 'string',
-        'weight' => -4,
-      ))
-      ->setDisplayOptions('form', array(
-        'type' => 'string_textfield',
-        'weight' => -4,
-      ))
-        ->setDisplayConfigurable('form', TRUE);
 
     $fields['user_id'] = BaseFieldDefinition::create('entity_reference')
       ->setLabel(t('Authored by'))

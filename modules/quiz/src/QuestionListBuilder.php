@@ -21,13 +21,20 @@ class QuestionListBuilder extends EntityListBuilder {
   use LinkGeneratorTrait;
 
   protected $qids;
+  protected $quiz;
   /**
    * {@inheritdoc}
    */
   public function buildHeader() {
     $header['id'] = $this->t('Question ID');
     $header['name'] = $this->t('Name');
+    $header['type'] = $this->t('Type');
     return $header + parent::buildHeader();
+  }
+
+  public function setQuiz($quizId) {
+    $this->quiz = $quizId;
+    return $this;
   }
 
   /**
@@ -36,6 +43,8 @@ class QuestionListBuilder extends EntityListBuilder {
   public function buildRow(EntityInterface $entity) {
     /* @var $entity \Drupal\quiz\Entity\question */
     $row['id'] = $entity->id();
+
+    //ugly and deprecated. Please fix.
     $row['name'] = $this->l(
       $this->getLabel($entity),
       new Url(
@@ -44,6 +53,15 @@ class QuestionListBuilder extends EntityListBuilder {
         )
       )
     );
+
+    $row['type'] = $entity->bundle();
+
+
+    $row['operations']['data']['#type'] = 'operations';
+    $row['operations']['data']['#links']['remove']['title'] = 'Remove';
+    $row['operations']['data']['#links']['remove']['url'] = Url::fromRoute('entity.quiz.remove_question', ['quiz' => $this->quiz, 'question' => $entity->id()]);
+    return $row;
+
     return $row + parent::buildRow($entity);
   }
 
@@ -78,6 +96,7 @@ class QuestionListBuilder extends EntityListBuilder {
         'tags' => $this->entityType->getListCacheTags(),
       ],
     );
+
     foreach ($this->getEntities() as $entity) {
       if ($row = $this->buildRow($entity)) {
         $build['table']['#rows'][$entity->id()] = $row;

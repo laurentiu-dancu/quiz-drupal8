@@ -13,6 +13,7 @@ use Drupal\Core\Entity\ContentEntityBase;
 use Drupal\Core\Entity\EntityChangedTrait;
 use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\Core\Session\AccountInterface;
+use Drupal\quiz\QuestionInterface;
 use Drupal\quiz\QuizInterface;
 use Drupal\user\UserInterface;
 //"view_builder" = "Drupal\Core\Entity\EntityViewBuilder",
@@ -26,7 +27,7 @@ use Drupal\user\UserInterface;
  *   label = @Translation("Quiz"),
  *   bundle_label = @Translation("Quiz bundle"),
  *   handlers = {
- *     "view_builder" = "Drupal\Core\Entity\EntityViewBuilder",
+ *     "view_builder" = "Drupal\quiz\QuizViewBuilder",
  *     "list_builder" = "Drupal\quiz\QuizListBuilder",
  *     "views_data" = "Drupal\quiz\Entity\QuizViewsData",
  *
@@ -116,12 +117,28 @@ class Quiz extends ContentEntityBase implements QuizInterface {
    * {@inheritdoc}
    */
   public function getQuestions() {
-    $questionStorage = static::entityTypeManager()->getStorage('question');
-    $query = $questionStorage->getQuery();
-    $aids = $query
+    /* @var $questionRelation \Drupal\quiz\Entity\QuizHasQuestion */
+    $quizHasQuestionStorage = static::entityTypeManager()->getStorage('quiz_has_question');
+    $query = $quizHasQuestionStorage->getQuery();
+    $quizHasQuestionIds = $query
       ->Condition('quiz', $this->id())
       ->execute();
-    return $questionStorage->loadMultiple($aids);
+
+    $quizHasQuestions = $quizHasQuestionStorage->loadMultiple($quizHasQuestionIds);
+    $questions = array();
+    /* @var $quizHasQuestion \Drupal\quiz\Entity\QuizHasQuestion */
+    foreach ($quizHasQuestions as $quizHasQuestion) {
+      $questions[] = $quizHasQuestion->getQuestion();
+    }
+    return $questions;
+  }
+
+  public function getAllQuestions() {
+    /* @var $questionRelation \Drupal\quiz\Entity\QuizHasQuestion */
+    $questionStorage = static::entityTypeManager()->getStorage('question');
+    $query = $questionStorage->getQuery();
+    $questionIds = $query->execute();
+    return $questionStorage->loadMultiple($questionIds);
   }
 
   /**
@@ -175,10 +192,23 @@ class Quiz extends ContentEntityBase implements QuizInterface {
   }
 
   public function getQuestionCount() {
-    $storage = static::entityTypeManager()->getStorage('question');
+    $storage = static::entityTypeManager()->getStorage('quiz_has_question');
     $query = $storage->getQuery();
     $qids = $query->Condition('quiz', $this->id())->execute();
     return count($qids);
+  }
+
+  public function removeQuestion(QuestionInterface $question) {
+    $storage = static::entityTypeManager()->getStorage('quiz_has_question');
+    $query = $storage->getQuery();
+    $qids = $query
+      ->Condition('quiz', $this->id())
+      ->Condition('question', $question->id())
+      ->execute();
+    $relations = $storage->loadMultiple($qids);
+    foreach ($relations as $relation) {
+      $relation->delete();
+    }
   }
 
   /**

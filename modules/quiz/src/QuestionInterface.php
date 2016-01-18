@@ -20,21 +20,6 @@ use Drupal\user\UserInterface;
  * @ingroup question
  */
 interface QuestionInterface extends ContentEntityInterface, EntityChangedInterface, EntityOwnerInterface {
-  /**
-   * Gets the quiz entity the question references.
-   *
-   * @return \Drupal\quiz\QuizInterface
-   *    Returns a quiz entity.
-   */
-  public function getQuiz();
-
-  /**
-   * Gets the ID of quiz entity the question references.
-   *
-   * @return int
-   *    Returns a quiz ID.
-   */
-  public function getQuizId();
 
   /**
    * Gets the bundle type of the quiz entity.
@@ -61,4 +46,8 @@ interface QuestionInterface extends ContentEntityInterface, EntityChangedInterfa
    *    Array containing all the answers given to this question.
    */
   public function getAnswers();
+
+  public function isText();
+  public function isTrueFalse();
+  public function isMultipleChoice();
 }
