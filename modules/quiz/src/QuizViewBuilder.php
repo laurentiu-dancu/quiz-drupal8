@@ -12,14 +12,8 @@ use Drupal\Core\Link;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\Core\Url;
 
-/**
- * Class QuizViewBuilder
- * Builds the user view for a Quiz entity.
- *
- * @package Drupal\quiz
- */
-class QuizViewBuilder extends EntityViewBuilder {
 
+class QuizViewBuilder extends EntityViewBuilder {
   public function view(EntityInterface $quiz, $view_mode = 'full', $langcode = NULL) {
     /* @var $quiz \Drupal\quiz\Entity\Quiz */
     $statuses = $quiz->getStatuses(\Drupal::getContainer()->get('current_user'));
@@ -208,7 +202,7 @@ class QuizViewBuilder extends EntityViewBuilder {
       }
 
       //display the user answer for the question
-      if($answer->isMultipleChoice()) {
+      if($answer->getType() == 'multiple_choice_answer') {
         foreach ($answer->get('field_multiple_answer') as $delta => $field) {
           if ($field->value == 1) {
             $rows[$answer->id()]['received'] .= $possible[$delta] . ', ';
@@ -216,10 +210,10 @@ class QuizViewBuilder extends EntityViewBuilder {
         }
       }
 
-      if($answer->isText())
+      if($answer->getType() == 'text_answer')
         $rows[$answer->id()]['received'] = $answer->get('field_text_answer')->value;
 
-      if($answer->isTrueFalse()) {
+      if($answer->getType() == 'true_or_false') {
         if($answer->get('field_true_or_false')->value == 0) {
           $rows[$answer->id()]['received'] = 'False';
         }

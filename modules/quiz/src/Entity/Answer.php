@@ -148,13 +148,13 @@ class Answer extends ContentEntityBase implements AnswerInterface {
   }
 
   public function isText() {
-    return $this->bundle() == 'text_answer';
+    return ($this->bundle() == 'text_answer');
   }
   public function isTrueFalse() {
-    return $this->bundle() == 'true_or_false';
+    return ($this->bundle() == 'true_or_false');
   }
   public function isMultipleChoice() {
-    return $this->bundle() == 'multiple_choice_answer';
+    return ($this->bundle() == 'multiple_choice_answer');
   }
 
   /**

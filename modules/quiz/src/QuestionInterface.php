@@ -46,8 +46,4 @@ interface QuestionInterface extends ContentEntityInterface, EntityChangedInterfa
    *    Array containing all the answers given to this question.
    */
   public function getAnswers();
-
-  public function isText();
-  public function isTrueFalse();
-  public function isMultipleChoice();
 }

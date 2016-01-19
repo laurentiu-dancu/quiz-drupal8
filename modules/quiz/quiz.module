@@ -24,35 +24,6 @@ function quiz_help($route_name, RouteMatchInterface $route_match) {
   }
 }
 
-/**
- * Implements hook_theme().
- */
-function quiz_theme() {
-  $theme = array(
-    'quiz_list_questions' => array(
-      'variables' => array(
-        'content' => NULL,
-        'questions' => NULL,
-      ),
-      'template' => 'listQuestions'
-    ),
-
-    'quiz_list_results' => array(
-      'variables' => array(
-        'markup' => NULL,
-      ),
-      'template' => 'listResults'
-    ),
-
-    'question' => array(
-      'variables' => array(
-        'content' => NULL,
-      )
-    )
-  );
-
-  return $theme;
-}
 
 /**
  * Implements hook_uninstall().
