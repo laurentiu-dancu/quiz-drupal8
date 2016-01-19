@@ -34,7 +34,6 @@ class QuizController extends ControllerBase {
   /**
    * Adds an answer to a question.
    *
-   * @param \Drupal\quiz\QuestionInterface $question
    * @param \Drupal\quiz\UserQuizStatusInterface $state
    * @return array
    *  Returns form for adding an answer.
@@ -55,7 +54,6 @@ class QuizController extends ControllerBase {
   /**
    * Builds a title for a question in format question x of n.
    *
-   * @param \Drupal\quiz\QuestionInterface $question
    * @param \Drupal\quiz\UserQuizStatusInterface $state
    * @return string
    *  Returns title string.
@@ -65,7 +63,10 @@ class QuizController extends ControllerBase {
     /* @var $quiz \Drupal\quiz\Entity\Quiz*/
     $quiz = $state->getQuiz();
 
-    return 'Question ' .($state->getAnswerCount() + 1) . ' of ' . count($quiz->getQuestions());
+    return $this->t('Question %x of %n',array(
+      '%x' => ($state->getAnswerCount() + 1),
+      '%n' => count($quiz->getQuestions())
+    ));
 
   }
 
@@ -156,9 +157,12 @@ class QuizController extends ControllerBase {
   }
 
   /**
-   * @param $selected array<int>
+   * Returns a table as a rendable array representing the questions that are not in quiz
+   * @TODO This should have its own query for optimisation purposes.
+   *
+   * @param $selected
+   * @param \Drupal\quiz\QuizInterface $quiz
    * @return array
-   *   Returns a table as a rendable array.
    */
   public function listAvailable($selected, QuizInterface $quiz) {
     $build = array();
@@ -168,10 +172,8 @@ class QuizController extends ControllerBase {
     $build['#header']['operations'] = $this->t('Operations');
     $build['#type'] = 'table';
 
-    $questionStorage = static::entityTypeManager()->getStorage('question');
     $questions = $this->getAllQuestions();
 
-    $ids = array();
     foreach ($questions as $id => $question) {
       $check = true;
       foreach ($selected as $sid) {
@@ -280,18 +282,15 @@ class QuizController extends ControllerBase {
    */
   public function takeQuiz(QuizInterface $quiz) {
     // Only attempt quiz if it has questions.
+    $attemptLimit = $quiz->getAttemptLimit();
 
-    $attemptCount = $quiz->get('attempts')->value;
-
-    if($attemptCount > 0) {
+    if($attemptLimit > 0) {
       $statuses = $quiz->getStatuses($this->currentUser());
-      if (count($statuses) >= $attemptCount) {
+      if (count($statuses) >= $attemptLimit) {
         $status = $quiz->getActiveStatus($this->currentUser());
         if($status == NULL) {
           drupal_set_message($this->t('Maximum attempts for this quiz reached.'), 'warning');
-          return $this->redirect('entity.quiz.canonical', [
-            'quiz' => $quiz->id(),
-          ]);
+          return $this->redirect('entity.quiz.canonical', array('quiz' => $quiz->id()));
         }
       }
     }
@@ -330,48 +329,39 @@ class QuizController extends ControllerBase {
       if ($nextQuestion != NULL) {
         $status->setCurrentQuestion($nextQuestion);
         $status->save();
-        return $this->redirect('entity.answer.add_answer', [
-          'state' => $status->id(),
-        ]);
+        return $this->redirect('entity.answer.add_answer', array('state' => $status->id()));
       }
       // Quiz completed case.
       elseif($status->isFinished() == 0) {
           $status->setScore($status->evaluate());
           $status->setMaxScore($quiz->getMaxScore());
-          $status->setPercent($quiz->get('percent')->value);
+          $status->setPercent($quiz->getPercentile());
 
-          $status->setQuestionsCount(count($quiz->getQuestions()));
+          $status->setQuestionsCount($quiz->getQuestionCount());
           $status->setFinished(time());
           $status->setCurrentQuestion();
           $status->save();
         }
-        return $this->redirect('entity.quiz.canonical', [
-          'quiz' => $quiz->id(),
-        ]);
+        return $this->redirect('entity.quiz.canonical', array('quiz' => $quiz->id()));
       }
 
     drupal_set_message($this->t('This quiz has no questions.'), 'warning');
-    return $this->redirect('entity.quiz.canonical', [
-      'quiz' => $quiz->id(),
-    ]);
+    return $this->redirect('entity.quiz.canonical', array('quiz' => $quiz->id()));
   }
 
   /**
-   * Finds the IDs of questions for a quiz.
+   * Sets the quiz title as its name.
    *
    * @param \Drupal\quiz\QuizInterface $quiz
-   * @return array
-   *    Returns IDs of questions for a quiz
+   * @return string
    */
-
-
   public function userDisplayQuizTitle(QuizInterface $quiz) {
-    return $quiz->get('name')->value;
+    return $quiz->getName();
   }
 
 
   /**
-   * Gets all answers
+   * Gets all the answers.
    *
    * @param \Drupal\quiz\QuizInterface $quiz
    * @param \Drupal\Core\Session\AccountInterface $user
@@ -419,11 +409,7 @@ class QuizController extends ControllerBase {
       $answer->delete();
       $counter++;
     }
-    drupal_set_message($this->t('Deleted %count answers.', [
-      '%count' => $counter,
-    ]));
-    return $this->redirect('entity.quiz.canonical', [
-      'quiz' => $quiz->id(),
-    ]);
+    drupal_set_message($this->t('Deleted %count answers.', array('%count' => $counter)));
+    return $this->redirect('entity.quiz.canonical', array('quiz' => $quiz->id()));
   }
 }

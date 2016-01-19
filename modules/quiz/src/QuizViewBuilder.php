@@ -16,23 +16,20 @@ use Drupal\Core\Url;
 class QuizViewBuilder extends EntityViewBuilder {
   public function view(EntityInterface $quiz, $view_mode = 'full', $langcode = NULL) {
     /* @var $quiz \Drupal\quiz\Entity\Quiz */
-    $statuses = $quiz->getStatuses(\Drupal::getContainer()->get('current_user'));
+    $statuses = $quiz->getStatuses($this->getCurrentUser());
 
     $build = array();
-
-
     $renderer = \Drupal::service('renderer');
-
     $config = \Drupal::config('system.site');
 
     $link = '';
     $questions = $quiz->getQuestionCount();
-    $percent = $quiz->get('percent')->value;
-    $timeLimit = $quiz->get('time')->value;
+    $percent = $quiz->getPercentile();
+    $timeLimit = $quiz->getTimeLimit();
     if($timeLimit == 0 || $timeLimit == NULL)
       $timeLimit = 0;
-    $description = $quiz->get('description')->value;
-    $attemptLimit = $quiz->get('attempts')->value;
+    $description = $quiz->getDescription();
+    $attemptLimit = $quiz->getTimeLimit();
     $attemptTimes = count($statuses);
 
 
@@ -235,6 +232,10 @@ class QuizViewBuilder extends EntityViewBuilder {
     );
 
     return $build;
+  }
+
+  public function getCurrentUser() {
+    return \Drupal::getContainer()->get('current_user');
   }
 
 }

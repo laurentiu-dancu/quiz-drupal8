@@ -191,6 +191,9 @@ class Quiz extends ContentEntityBase implements QuizInterface {
     return $score;
   }
 
+  /**
+   * {@inheritdoc}
+   */
   public function getQuestionCount() {
     $storage = static::entityTypeManager()->getStorage('quiz_has_question');
     $query = $storage->getQuery();
@@ -198,6 +201,9 @@ class Quiz extends ContentEntityBase implements QuizInterface {
     return count($qids);
   }
 
+  /**
+   * {@inheritdoc}
+   */
   public function removeQuestion(QuestionInterface $question) {
     $storage = static::entityTypeManager()->getStorage('quiz_has_question');
     $query = $storage->getQuery();
@@ -209,6 +215,41 @@ class Quiz extends ContentEntityBase implements QuizInterface {
     foreach ($relations as $relation) {
       $relation->delete();
     }
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getPercentile() {
+    return $this->get('percent')->value;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getTimeLimit() {
+    return $this->get('time')->value;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getDescription() {
+    return $this->get('description')->value;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getAttemptLimit() {
+    return $this->get('attempts')->value;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getName() {
+    return $this->get('name')->value;
   }
 
   /**

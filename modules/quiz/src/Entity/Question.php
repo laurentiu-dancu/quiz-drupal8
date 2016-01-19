@@ -115,6 +115,10 @@ class Question extends ContentEntityBase implements QuestionInterface {
     return $this->bundle();
   }
 
+  public function getAnswerType() {
+    return $this->get('answer_type')->target_id;
+  }
+
   /**
    * {@inheritdoc}
    */

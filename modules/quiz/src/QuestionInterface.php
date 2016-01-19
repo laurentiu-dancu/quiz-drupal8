@@ -46,4 +46,12 @@ interface QuestionInterface extends ContentEntityInterface, EntityChangedInterfa
    *    Array containing all the answers given to this question.
    */
   public function getAnswers();
+
+  /**
+   * Gets the type of answer associated with this question.
+   *
+   * @return string
+   *    A string representing the name of the answer type.
+   */
+  public function getAnswerType();
 }
