@@ -95,7 +95,7 @@ class Answer extends ContentEntityBase implements AnswerInterface {
   public function getQuestion() {
     return $this->get('question')->entity;
   }
-  //git test
+
   /**
    * {@inheritdoc}
    */

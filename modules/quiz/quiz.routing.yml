@@ -147,24 +147,6 @@ entity.question.collection:
 #    _permission: 'add question entities'
 #
 
-entity.question.add_page_quiz:
-  path: '/admin/question/add/{quiz}'
-  defaults:
-    _controller: '\Drupal\quiz\Controller\QuizController::pickQuestionType'
-    _title: 'Add Question'
-  requirements:
-    _permission: 'add quiz entities'
-
-entity.question.add_form:
-  path: '/admin/question/add/{quiz}/{question_type}'
-  defaults:
-    _controller: '\Drupal\quiz\Controller\QuizController::addQuestion'
-    _title: 'Add Question'
-  requirements:
-    _permission: 'add question entities'
-  options:
-    _admin_route: TRUE
-
 entity.question.edit_form:
   path: '/admin/question/{question}/edit'
   defaults:
@@ -469,18 +451,56 @@ user_quiz_status.settings:
     _admin_route: TRUE
 
 entity.quiz.add_question:
-  path: '/quiz/{quiz}/add-question/{question}'
+  path: 'admin/quiz/{quiz}/add-question/{question}'
   defaults:
     _controller: 'Drupal\quiz\Controller\QuizController::bindQuestion'
+  options:
+      _admin_route: TRUE
   requirements:
     _entity_access: 'quiz.view'
 
 entity.quiz.remove_question:
-  path: '/quiz/{quiz}/remove-question/{question}'
+  path: 'admin/quiz/{quiz}/remove-question/{question}'
   defaults:
     _controller: 'Drupal\quiz\Controller\QuizController::unbindQuestion'
+  options:
+    _admin_route: TRUE
   requirements:
     _entity_access: 'quiz.view'
+
+entity.quiz.delete_question:
+  path: 'admin/quiz/{quiz}/delete-question/{question}'
+  defaults:
+    _form: 'Drupal\quiz\Entity\Form\QuestionDeleteFormQuiz'
+  options:
+      parameters:
+        quiz:
+          type: entity:quiz
+        question:
+          type: entity:question
+      _admin_route: TRUE
+  requirements:
+    _permission: 'delete question entities'
+
+entity.question.add_page_quiz:
+  path: '/admin/quiz/create-question/{quiz}'
+  defaults:
+    _controller: '\Drupal\quiz\Controller\QuizController::pickQuestionType'
+    _title: 'Add Question'
+  options:
+      _admin_route: TRUE
+  requirements:
+    _permission: 'create question entities'
+
+entity.question.add_form:
+  path: '/admin/quiz/create-question/{quiz}/{question_type}'
+  defaults:
+    _controller: '\Drupal\quiz\Controller\QuizController::addQuestion'
+    _title: 'Add Question'
+  requirements:
+    _permission: 'add question entities'
+  options:
+    _admin_route: TRUE
 
 #entity.quiz.canonical_user_redux:
 #  path: '/quiz/{quiz}/redux'

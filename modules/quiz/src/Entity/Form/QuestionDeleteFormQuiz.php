@@ -2,12 +2,13 @@
 
 /**
  * @file
- * Contains \Drupal\quiz\Entity\Form\questionDeleteForm.
+ * Contains \Drupal\quiz\Entity\Form\QuestionDeleteFormQuiz.
  */
 
 namespace Drupal\quiz\Entity\Form;
 
 use Drupal\Core\Entity\ContentEntityConfirmFormBase;
+use Drupal\Core\Form\ConfirmFormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Url;
 use Drupal\quiz\QuestionInterface;
@@ -18,14 +19,25 @@ use Drupal\quiz\QuizInterface;
  *
  * @ingroup question
  */
-class QuestionDeleteForm extends ContentEntityConfirmFormBase {
+class QuestionDeleteFormQuiz extends ConfirmFormBase {
 
   private $quiz;
 
+  private $entity;
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getFormId() {
+    return 'quiz_question_delete';
+  }
+
   public function buildForm(array $form, FormStateInterface $form_state, QuizInterface $quiz = NULL, QuestionInterface $question = NULL) {
 
-    kint('here');
     $this->quiz = $quiz;
+    $this->entity = $question;
+
+    kint($quiz);
     return parent::buildForm($form, $form_state);
   }
 
@@ -40,7 +52,7 @@ class QuestionDeleteForm extends ContentEntityConfirmFormBase {
    * {@inheritdoc}
    */
   public function getCancelUrl() {
-    return new Url('entity.question.collection');
+    return new Url('entity.quiz.collection');
   }
 
   /**
@@ -80,7 +92,7 @@ class QuestionDeleteForm extends ContentEntityConfirmFormBase {
       $form_state->setRedirect('entity.quiz.collection');
     }
     else {
-      $form_state->setRedirect('entity.quiz.canonical', [
+      $form_state->setRedirect('entity.quiz.canonical_admin', [
         'quiz' => $this->quiz->id(),
       ]);
     }

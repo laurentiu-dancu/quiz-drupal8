@@ -61,4 +61,25 @@ class QuestionType extends ConfigEntityBundleBase implements QuestionTypeInterfa
    * @var string
    */
   protected $uuid;
+
+  /**
+   * @inheritdoc
+   */
+  public function isTrueFalse() {
+    return ($this->id() == 'true_or_false');
+  }
+
+  /**
+   * @inheritdoc
+   */
+  public function isText() {
+    return ($this->id() == 'text_question');
+  }
+
+  /**
+   * @inheritdoc
+   */
+  public function isMultipleChoice() {
+    return ($this->id() == 'multiple_choice_question');
+  }
 }

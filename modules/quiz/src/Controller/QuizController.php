@@ -81,11 +81,11 @@ class QuizController extends ControllerBase {
    */
   public function addQuestion($quiz, QuestionTypeInterface $question_type) {
     $answer_type = NULL;
-    if($question_type->id() == 'true_or_false')
+    if($question_type->isTrueFalse())
       $answer_type = 'true_or_false';
-    if($question_type->id() == 'text_question')
+    if($question_type->isText())
       $answer_type = 'text_answer';
-    if($question_type->id() == 'multiple_choice_question')
+    if($question_type->isMultipleChoice())
       $answer_type = 'multiple_choice_answer';
     $question = static::entityTypeManager()->getStorage('question')->create(array(
       'type' => $question_type->id(),
@@ -162,9 +162,6 @@ class QuizController extends ControllerBase {
    */
   public function listAvailable($selected, QuizInterface $quiz) {
     $build = array();
-
-
-
     $build['#header']['id'] = $this->t('Question ID');
     $build['#header']['name'] = $this->t('Name');
     $build['#header']['type'] = $this->t('Type');
@@ -200,11 +197,26 @@ class QuizController extends ControllerBase {
         $build['#rows'][$id]['operations']['data']['#links']['add']['title'] = 'Add';
         $build['#rows'][$id]['operations']['data']['#links']['add']['url'] = Url::fromRoute('entity.quiz.add_question', ['quiz' => $quiz->id(), 'question' => $question->id()]);
 
+        $build['#rows'][$id]['operations']['data']['#links']['edit']['title'] = 'Edit';
+        $build['#rows'][$id]['operations']['data']['#links']['edit']['url'] = $question->toUrl('edit-form');
+        //Url::fromRoute('entity.quiz.edit_question', ['quiz' => $quiz->id(), 'question' => $question->id()]);
+
+        $build['#rows'][$id]['operations']['data']['#links']['delete']['title'] = 'Delete';
+        $build['#rows'][$id]['operations']['data']['#links']['delete']['url'] = Url::fromRoute('entity.quiz.delete_question', ['quiz' => $quiz->id(), 'question' => $question->id()]);
+          //Url::fromRoute('entity.quiz.delete_question', ['quiz' => $quiz->id(), 'question' => $question->id()]);
+
       }
     }
     return $build;
   }
 
+  /**
+   * Creates a new QuizHasQuestion instance.
+   *
+   * @param \Drupal\quiz\QuizInterface $quiz
+   * @param \Drupal\quiz\QuestionInterface $question
+   * @return \Symfony\Component\HttpFoundation\RedirectResponse
+   */
   public function bindQuestion(QuizInterface $quiz, QuestionInterface $question) {
     $entity = QuizHasQuestion::create(array())
       ->setQuestion($question)
@@ -215,6 +227,13 @@ class QuizController extends ControllerBase {
     ]);
   }
 
+  /**
+   * Deletes all QuizHasQuestion instances for a Quiz and a Question.
+   *
+   * @param \Drupal\quiz\QuizInterface $quiz
+   * @param \Drupal\quiz\QuestionInterface $question
+   * @return \Symfony\Component\HttpFoundation\RedirectResponse
+   */
   public function unbindQuestion(QuizInterface $quiz, QuestionInterface $question) {
     $quiz->removeQuestion($question);
     return $this->redirect('entity.quiz.canonical_admin', [
@@ -222,6 +241,11 @@ class QuizController extends ControllerBase {
     ]);
   }
 
+  /**
+   * Gets all question entities.
+   *
+   * @return \Drupal\Core\Entity\EntityInterface[]
+   */
   public function getAllQuestions() {
     /* @var $questionRelation \Drupal\quiz\Entity\QuizHasQuestion */
     $questionStorage = static::entityTypeManager()->getStorage('question');
@@ -247,7 +271,7 @@ class QuizController extends ControllerBase {
   }
 
   /**
-   * Starts a quiz by loading its first question
+   * Controls the quiz.
    *
    * @param \Drupal\quiz\QuizInterface $quiz
    * @return array|\Symfony\Component\HttpFoundation\RedirectResponse
@@ -346,6 +370,15 @@ class QuizController extends ControllerBase {
   }
 
 
+  /**
+   * Gets all answers
+   *
+   * @param \Drupal\quiz\QuizInterface $quiz
+   * @param \Drupal\Core\Session\AccountInterface $user
+   * @return array
+   *
+   * @deprecated Use the functionality built into UserQuizStatus.
+   */
   public function getAllAnswers(QuizInterface $quiz, AccountInterface $user) {
     $answerStorage = static::entityTypeManager()->getStorage('answer');
     $query = $answerStorage->getQuery();
@@ -373,7 +406,7 @@ class QuizController extends ControllerBase {
    *  Returns a redirect to the canonical quiz page.
    *
    * @TODO: Also delete states, not just answer entities.
-   * @deprecated Just don't use it, it doesn't work with statuses
+   * @deprecated Just don't use it, it makes no sense.
    */
   public function resetQuiz(QuizInterface $quiz, AccountInterface $user = NULL) {
     if($user == NULL) {

@@ -27,7 +27,7 @@ entity.question_type.add_form:
 
 entity.question.add_page_quiz:
   route_name: 'entity.question.add_page_quiz'
-  title: 'Add Question'
+  title: 'Add New Question'
   appears_on:
      - entity.quiz.canonical_admin
 
@@ -55,11 +55,11 @@ entity.quiz.take_quiz:
   appears_on:
     - entity.quiz.canonical_admin
 
-entity.quiz.delete_answers:
-  route_name: 'entity.quiz.delete_answers'
-  title: 'Reset my Quiz Answers'
-  appears_on:
-    - entity.quiz.canonical_admin
+#entity.quiz.delete_answers:
+#  route_name: 'entity.quiz.delete_answers'
+#  title: 'Reset my Quiz Answers'
+#  appears_on:
+#    - entity.quiz.canonical_admin
 
 entity.quiz.add_page:
   route_name: 'entity.quiz.add_page'
