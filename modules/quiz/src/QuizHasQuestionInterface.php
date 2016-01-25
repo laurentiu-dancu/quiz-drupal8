@@ -41,4 +41,7 @@ interface QuizHasQuestionInterface extends ContentEntityInterface {
    */
   public function getQuestion();
 
+  public function getScore();
+
+  public function setScore($score);
 }

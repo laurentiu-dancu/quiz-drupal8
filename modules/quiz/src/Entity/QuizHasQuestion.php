@@ -70,6 +70,15 @@ class QuizHasQuestion extends ContentEntityBase implements QuizHasQuestionInterf
     return $this->get('question')->entity;
   }
 
+  public function getScore() {
+    return $this->get('score')->value;
+  }
+
+  public function setScore($score) {
+    $this->set('score', $score);
+    return $this;
+  }
+
   /**
    * {@inheritdoc}
    */
@@ -93,6 +102,10 @@ class QuizHasQuestion extends ContentEntityBase implements QuizHasQuestionInterf
       ->setLabel(t('Question'))
       ->setDescription(t('The question this relation references'))
       ->setSetting('target_type', 'question');
+
+    $fields['score'] = BaseFieldDefinition::create('integer')
+      ->setLabel(t('Score'))
+      ->setDescription(t('This the score this question has for this quiz'));
 
     return $fields;
   }

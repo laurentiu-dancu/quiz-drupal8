@@ -54,4 +54,10 @@ interface QuestionInterface extends ContentEntityInterface, EntityChangedInterfa
    *    A string representing the name of the answer type.
    */
   public function getAnswerType();
+
+  public function getScore(QuizInterface $quiz);
+
+  public function setScore(QuizInterface $quiz, $score);
+
+  public function getDefaultScore();
 }

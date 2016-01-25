@@ -268,7 +268,7 @@ class UserQuizStatus extends ContentEntityBase implements UserQuizStatusInterfac
           }
         }
         if(!$fail) {
-          $score += $question->get('score')->value;
+          $score += $question->getScore($this->getQuiz());
         }
       }
     }

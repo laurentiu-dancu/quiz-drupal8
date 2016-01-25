@@ -226,10 +226,10 @@ entity.quiz.canonical_admin:
   path: '/admin/quiz/{quiz}'
   defaults:
     _controller: '\Drupal\quiz\Controller\QuizController::listQuestions'
+    #_form: '\Drupal\quiz\QuizSelectedQuestions'
     _title: 'Quiz'
   requirements:
-    _entity_access: 'quiz.view'
-    _permission: 'add question entities'
+    _entity_access: 'quiz'
   options:
     _admin_route: TRUE
 

@@ -2,7 +2,7 @@
 
 /**
  * @file
- * Contains \Drupal\quiz\Form\question_typeForm.
+ * Contains \Drupal\quiz\Form\QuestionTypeForm.
  */
 
 namespace Drupal\quiz\Form;

@@ -7,6 +7,8 @@
 
 namespace Drupal\quiz\Entity;
 
+use Drupal\Core\Database\Driver\mysql\Connection;
+use Drupal\Core\Database\Query\Select;
 use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Field\BaseFieldDefinition;
 use Drupal\Core\Entity\ContentEntityBase;
@@ -133,6 +135,24 @@ class Quiz extends ContentEntityBase implements QuizInterface {
     return $questions;
   }
 
+  /**
+   * select q.id from question as q
+   * left join quiz_has_question as h
+   * on h.question = q.id
+   * where h.question is null
+   */
+  public function getUnselectedQuestions() {
+    $questionStorage = static::entityTypeManager()->getStorage('question');
+    $connection = \Drupal::database();
+    $query = $connection->select('question', 'q')->fields('q', array('id'));
+    $query->addJoin('LEFT','quiz_has_question','h','q.id = h.question');
+    $query->isNull('h.question');
+    $result = $query->execute();
+    $rows= $result->fetchCol(0);
+    $questions = $questionStorage->loadMultiple($rows);
+    return ($questions);
+  }
+
   public function getAllQuestions() {
     /* @var $questionRelation \Drupal\quiz\Entity\QuizHasQuestion */
     $questionStorage = static::entityTypeManager()->getStorage('question');
@@ -186,7 +206,7 @@ class Quiz extends ContentEntityBase implements QuizInterface {
     $score = 0;
     foreach ($questions as $question) {
       /* @var $question \Drupal\quiz\Entity\Question */
-      $score += $question->get('score')->value;
+      $score += $this->getQuestionScoreById($question->id());
     }
     return $score;
   }
@@ -197,8 +217,8 @@ class Quiz extends ContentEntityBase implements QuizInterface {
   public function getQuestionCount() {
     $storage = static::entityTypeManager()->getStorage('quiz_has_question');
     $query = $storage->getQuery();
-    $qids = $query->Condition('quiz', $this->id())->execute();
-    return count($qids);
+    $questionCount = $query->Condition('quiz', $this->id())->count()->execute();
+    return $questionCount;
   }
 
   /**
@@ -250,6 +270,59 @@ class Quiz extends ContentEntityBase implements QuizInterface {
    */
   public function getName() {
     return $this->get('name')->value;
+  }
+
+  public function getQuestionScoreById($qid) {
+    $storage = static::entityTypeManager()->getStorage('quiz_has_question');
+    $query = $storage->getQuery();
+    $qids = $query
+      ->Condition('quiz', $this->id())
+      ->Condition('question', $qid)
+      ->execute();
+    $relation = $storage->load(current($qids));
+    return $relation->getScore();
+  }
+
+  public function setQuestionScoreById($qid, $score) {
+    $storage = static::entityTypeManager()->getStorage('quiz_has_question');
+    $query = $storage->getQuery();
+    $qids = $query
+      ->Condition('quiz', $this->id())
+      ->Condition('question', $qid)
+      ->execute();
+    $relations = $storage->loadMultiple($qids);
+    foreach ($relations as $relation) {
+      $relation->setScore($score);
+      $relation->save();
+    }
+    return $this;
+  }
+
+  public function removeQuestionById($qid) {
+    $storage = static::entityTypeManager()->getStorage('quiz_has_question');
+    $query = $storage->getQuery();
+    $qids = $query
+      ->Condition('quiz', $this->id())
+      ->Condition('question', $qid)
+      ->execute();
+    $relations = $storage->loadMultiple($qids);
+    foreach ($relations as $relation) {
+      $relation->delete();
+    }
+    return $this;
+  }
+
+  public function addQuestionById($qid) {
+    $storage = static::entityTypeManager()->getStorage('question');
+    /* @var $question \Drupal\quiz\Entity\Question */
+    $question = $storage->load($qid);
+    $entity = QuizHasQuestion::create(array())
+      ->setQuestion($question)
+      ->setQuiz($this)
+      ->setScore($question->getDefaultScore())
+      ->save();
+
+    return $this;
   }
 
   /**

@@ -110,4 +110,10 @@ interface QuizInterface extends ContentEntityInterface, EntityChangedInterface, 
    */
   public function getName();
 
+  public function removeQuestionById($qid);
+
+  public function getUnselectedQuestions();
+
+  public function getQuestionScoreById($qid);
+
 }

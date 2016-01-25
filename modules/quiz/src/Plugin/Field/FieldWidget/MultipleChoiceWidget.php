@@ -93,6 +93,7 @@ class MultipleChoiceWidget extends WidgetBase {
     );
 */
 
+
     return $element;
   }
 

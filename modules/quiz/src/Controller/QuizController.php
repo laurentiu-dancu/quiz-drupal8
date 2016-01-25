@@ -8,12 +8,20 @@
 namespace Drupal\quiz\Controller;
 
 use Drupal\Core\Controller\ControllerBase;
+use Drupal\Core\Entity\EntityManager;
+use Drupal\Core\Form\BaseFormIdInterface;
+use Drupal\Core\Form\FormState;
+use Drupal\Core\Render\Element\Form;
 use Drupal\Core\Routing\LinkGeneratorTrait;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\Core\Url;
+use Drupal\quiz\Entity\Form\AnswerForm;
+use Drupal\quiz\Entity\Form\QuizForm;
 use Drupal\quiz\Entity\QuizHasQuestion;
 use Drupal\quiz\Entity\UserQuizStatus;
+use Drupal\quiz\Form\QuizSelectedQuestionsForm;
+use Drupal\quiz\Form\QuizUnselectedQuestionsForm;
 use Drupal\quiz\QuestionInterface;
 use Drupal\quiz\QuestionListBuilder;
 use Drupal\quiz\QuestionTypeInterface;
@@ -22,6 +30,7 @@ use Drupal\quiz\QuizInterface;
 use Drupal\quiz\QuizTypeInterface;
 use Drupal\Core\Link;
 use Drupal\quiz\UserQuizStatusInterface;
+use Symfony\Component\DependencyInjection\ContainerAwareTrait;
 
 /**
  * Class QuizController.
@@ -31,6 +40,7 @@ use Drupal\quiz\UserQuizStatusInterface;
 class QuizController extends ControllerBase {
   use LinkGeneratorTrait;
 
+  use ContainerAwareTrait;
   /**
    * Adds an answer to a question.
    *
@@ -131,85 +141,14 @@ class QuizController extends ControllerBase {
    *    Returns a rendable array.
    */
   public function listQuestions(QuizInterface $quiz) {
-    /* @var $questionRelation \Drupal\quiz\Entity\QuizHasQuestion */
-    /* @var $question \Drupal\quiz\Entity\Question */
+    $form_object = new QuizSelectedQuestionsForm($quiz);
+    $form_builder = \Drupal::formBuilder();
 
-    $questionStorage = static::entityTypeManager()->getStorage('question');
+    $form_second = new QuizUnselectedQuestionsForm($quiz, $this->entityTypeManager());
+    $form['questions'] = $form_builder->getForm($form_object);
+    $form['unselected'] = $form_builder->getForm($form_second);
 
-
-    $questions = $quiz->getQuestions();
-    $qids = array();
-    foreach ($questions as $question) {
-      $qids[] = $question->id();
-    }
-
-    $builder = new QuestionListBuilder($questionStorage->getEntityType(), $questionStorage);
-    $builder->setIds($qids);
-
-    $builder->setQuiz($quiz->id());
-
-
-    $renderArray['selected'] = $builder->render();
-
-    //kint($renderArray['selected']['table']['#rows']['1']);
-    $renderArray['available'] = $this->listAvailable($qids, $quiz);
-    return $renderArray;
-  }
-
-  /**
-   * Returns a table as a rendable array representing the questions that are not in quiz
-   * @TODO This should have its own query for optimisation purposes.
-   *
-   * @param $selected
-   * @param \Drupal\quiz\QuizInterface $quiz
-   * @return array
-   */
-  public function listAvailable($selected, QuizInterface $quiz) {
-    $build = array();
-    $build['#header']['id'] = $this->t('Question ID');
-    $build['#header']['name'] = $this->t('Name');
-    $build['#header']['type'] = $this->t('Type');
-    $build['#header']['operations'] = $this->t('Operations');
-    $build['#type'] = 'table';
-
-    $questions = $this->getAllQuestions();
-
-    foreach ($questions as $id => $question) {
-      $check = true;
-      foreach ($selected as $sid) {
-        if($question->id() == $sid) {
-          $check = false;
-        }
-      }
-
-      // if the question is not added to the quiz, list it here as an option
-      if($check) {
-        $build['#rows'][$id]['id'] = $question->id();
-        $build['#rows'][$id]['name'] = $this->l(
-          $question->label(),
-          Url::fromRoute(
-            'entity.question.edit_form', array(
-              'question' => $question->id(),
-            )
-          )
-        );
-        $build['#rows'][$id]['type'] = $question->bundle();
-
-        $build['#rows'][$id]['operations']['data']['#type'] = 'operations';
-        $build['#rows'][$id]['operations']['data']['#links']['add']['title'] = 'Add';
-        $build['#rows'][$id]['operations']['data']['#links']['add']['url'] = Url::fromRoute('entity.quiz.add_question', ['quiz' => $quiz->id(), 'question' => $question->id()]);
-
-        $build['#rows'][$id]['operations']['data']['#links']['edit']['title'] = 'Edit';
-        $build['#rows'][$id]['operations']['data']['#links']['edit']['url'] = $question->toUrl('edit-form');
-        //Url::fromRoute('entity.quiz.edit_question', ['quiz' => $quiz->id(), 'question' => $question->id()]);
-
-        $build['#rows'][$id]['operations']['data']['#links']['delete']['title'] = 'Delete';
-        $build['#rows'][$id]['operations']['data']['#links']['delete']['url'] = Url::fromRoute('entity.quiz.delete_question', ['quiz' => $quiz->id(), 'question' => $question->id()]);
-          //Url::fromRoute('entity.quiz.delete_question', ['quiz' => $quiz->id(), 'question' => $question->id()]);
-
-      }
-    }
-    return $build;
+    return ($form);
   }
 
   /**
@@ -243,18 +182,6 @@ class QuizController extends ControllerBase {
     ]);
   }
 
-  /**
-   * Gets all question entities.
-   *
-   * @return \Drupal\Core\Entity\EntityInterface[]
-   */
-  public function getAllQuestions() {
-    /* @var $questionRelation \Drupal\quiz\Entity\QuizHasQuestion */
-    $questionStorage = static::entityTypeManager()->getStorage('question');
-    $query = $questionStorage->getQuery();
-    $questionIds = $query->execute();
-    return $questionStorage->loadMultiple($questionIds);
-  }
 
   /**
    * Lists the question types for a new question in a quiz.

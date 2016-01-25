@@ -17,6 +17,17 @@ use Drupal\Core\Language\Language;
  * @ingroup quiz
  */
 class QuizForm extends ContentEntityForm {
+
+  /*
+  public function getBaseFormId() {
+    return 'quiz_base';
+  }
+
+  public function getFormId() {
+    return 'quiz_form_id';
+  }
+  */
+
   /**
    * {@inheritdoc}
    */

@@ -114,6 +114,21 @@ class MultipleAnswerWidget extends WidgetBase {
     // Most widgets need their internal structure preserved in submitted values.
     $elements += array('#tree' => TRUE);
 
+    kint(array(
+      // Aid in theming of widgets by rendering a classified container.
+      '#type' => 'container',
+      // Assign a different parent, to keep the main id for the widget itself.
+      '#parents' => array_merge($parents, array($field_name . '_wrapper')),
+      '#attributes' => array(
+        'class' => array(
+          'field--type-' . Html::getClass($this->fieldDefinition->getType()),
+          'field--name-' . Html::getClass($field_name),
+          'field--widget-' . Html::getClass($this->getPluginId()),
+        ),
+      ),
+      'widget' => $elements,
+    ));
+
     return array(
       // Aid in theming of widgets by rendering a classified container.
       '#type' => 'container',

@@ -15,6 +15,7 @@ use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\quiz\QuestionInterface;
 use Drupal\quiz\AnswerTypeInterface;
+use Drupal\quiz\QuizInterface;
 use Drupal\quiz\UserQuizStatusInterface;
 use Drupal\user\UserInterface;
 
@@ -61,6 +62,8 @@ use Drupal\user\UserInterface;
  */
 class Question extends ContentEntityBase implements QuestionInterface {
   use EntityChangedTrait;
+
+  private $quizHasQuestionStorage = null;
   /**
    * {@inheritdoc}
    */
@@ -154,6 +157,46 @@ class Question extends ContentEntityBase implements QuestionInterface {
       ->execute();
     return $answerStorage->loadMultiple($aids);
   }
+
+  public function getScore(QuizInterface $quiz) {
+    if(!$this->quizHasQuestionStorage)
+      $this->quizHasQuestionStorage = static::entityTypeManager()->getStorage('quiz_has_question');
+
+    $query = $this->quizHasQuestionStorage->getQuery();
+    $relId = $query
+      ->condition('question', $this->id())
+      ->condition('quiz', $quiz->id())
+      ->pager(1)
+      ->execute();
+
+    /* @var $rel \Drupal\quiz\Entity\QuizHasQuestion */
+    $rel =  $this->quizHasQuestionStorage->load(current($relId));
+    return $rel->getScore();
+  }
+
+  public function setScore(QuizInterface $quiz, $score) {
+
+    if(!$this->quizHasQuestionStorage)
+      $this->quizHasQuestionStorage = static::entityTypeManager()->getStorage('quiz_has_question');
+
+    $query = $this->quizHasQuestionStorage->getQuery();
+    $relId = $query
+      ->condition('question', $this->id())
+      ->condition('quiz', $quiz->id())
+      ->pager(1)
+      ->execute();
+
+    /* @var $rel \Drupal\quiz\Entity\QuizHasQuestion */
+    $rel =  $this->quizHasQuestionStorage->load(current($relId));
+    $rel->setScore($score);
+    $rel->save();
+    return $this;
+  }
+
+  public function getDefaultScore() {
+    return $this->get('score')->value;
+  }
+
 
   /**
    * {@inheritdoc}
